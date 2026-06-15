@@ -32,8 +32,12 @@ def _get_conn() -> pyodbc.Connection:
 
 
 def _agent_yaml_name(agent_name: str) -> str:
-    """Convert 'ClaimsAgent' → 'claims_agent' to locate the config YAML."""
-    return re.sub(r"(?<!^)(?=[A-Z])", "_", agent_name).lower()
+    """Convert 'ClaimsAgent' → 'claims_agent', 'ETLAgent' → 'etl_agent'."""
+    # Two-pass: handle acronym→CamelCase boundary (ETLAgent → ETL_Agent),
+    # then lowercase→uppercase boundary (ClaimsAgent → Claims_Agent).
+    s = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", agent_name)
+    s = re.sub(r"([a-z])([A-Z])", r"\1_\2", s)
+    return s.lower()
 
 
 def _load_budget(agent_name: str) -> int:

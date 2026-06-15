@@ -54,7 +54,7 @@ def run_agent(
     for _ in range(MAX_ITERATIONS):
         response = client.messages.create(
             model=config["model"],
-            max_tokens=4096,
+            max_tokens=8192,
             system=config["system_prompt"],
             tools=tool_defs,
             messages=messages,

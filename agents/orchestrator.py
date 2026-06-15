@@ -46,7 +46,10 @@ def _route(user_request: str, client: Anthropic) -> dict:
         messages=[{"role": "user", "content": user_request}],
     )
     try:
-        return json.loads(response.content[0].text)
+        text = response.content[0].text.strip()
+        if text.startswith("```"):
+            text = text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+        return json.loads(text)
     except (json.JSONDecodeError, IndexError, KeyError) as exc:
         return {"agents": [], "escalation": f"Routing parse error: {exc}"}
 
@@ -123,6 +126,7 @@ def main() -> None:
     parser.add_argument("request", help="User request in natural language")
     parser.add_argument("--session", default=None, help="Session ID for budget tracking")
     args = parser.parse_args()
+    sys.stdout.reconfigure(encoding="utf-8")
     print(run(args.request, args.session))
 
 

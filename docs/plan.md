@@ -177,3 +177,43 @@ Two test suites — see [docs/phase6_design.md § Testing](phase6_design.md) for
 - [x] Stored procedure EXECUTE grants verified per agent
 - Run: `$env:HEALTHCAREADK_TEST_PERMISSIONS=1; pytest tests/test_permissions.py -v`
 - Prerequisite env vars: `HEALTHCAREADK_PWD_AGENT_ORCHESTRATOR`, `_CLAIMS`, `_CLINICAL`, `_FINANCIAL`, `_REPORTING`, `_ETL`, `_PROVIDER`
+
+**Live agent testing (2026-06-15) — bugs found and fixed:**
+
+- [x] Orchestrator routing: Claude returns JSON wrapped in markdown fences → stripped before `json.loads`
+- [x] ETLAgent budget check: `_agent_yaml_name("ETLAgent")` → `"e_t_l_agent"` (wrong); two-pass regex fix → `"etl_agent"`
+- [x] `max_tokens` 4096 → 8192 in `_base.py` (ClinicalAgent truncated on large result sets)
+- [x] CLI stdout encoding: `sys.stdout.reconfigure(encoding="utf-8")` to handle Unicode on Windows cp1252
+
+---
+
+## Phase 7 — Smart Caching + Chat Frontend
+
+**Goal:** Eliminate redundant API calls for repeated queries; expose the agent system through a chat UI.
+
+**Design:** See [docs/phase7_design.md](phase7_design.md)
+
+### Tasks
+
+#### 1 — Layer 1: Anthropic Prompt Caching
+
+- [ ] Add `cache_control: {"type": "ephemeral"}` to system prompt block in `agents/_base.py`
+- [ ] Verify cache hit/miss in `response.usage` (cached_input_tokens field)
+- [ ] Log cache hits to `dw.AgentUsageLog` (add `CachedTokens` column to `09_agent_usage_log.sql`)
+
+#### 2 — Layer 2: Response Cache (SQL Server)
+
+- [ ] `sql/12_query_cache.sql` — `dw.QueryCache` table: `CacheKey`, `AgentName`, `Query`, `Response`, `CreatedAt`, `ExpiresAt`
+- [ ] Cache key: `SHA256(lower(strip(query)))` + agent name
+- [ ] TTL per agent (in `agents/config/*.yaml`): ETLAgent/ClinicalAgent = 15 min, ClaimsAgent/ProviderAgent = 30 min, FinancialAgent/ReportingAgent = 60 min
+- [ ] Cache check in `agents/orchestrator.py` — before `_dispatch()`, query cache; on hit, return immediately with 0 API tokens
+- [ ] Cache write in `agents/orchestrator.py` — after `_dispatch()`, insert response + expiry
+- [ ] Cache invalidation: ETLAgent run → flush ETLAgent + ClinicalAgent cache entries
+
+#### 3 — Chat Frontend (FastAPI + UI)
+
+- [ ] `api/main.py` — FastAPI app with `POST /chat` endpoint calling `orchestrator.run()`
+- [ ] `api/models.py` — request/response Pydantic models
+- [ ] `frontend/` — simple chat UI (HTML/JS or React) that POSTs to `/chat` and renders markdown responses
+- [ ] Session ID passed through from the UI so budget tracking works per user session
+- [ ] CORS configured for local dev

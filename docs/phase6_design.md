@@ -288,6 +288,19 @@ Tests skip automatically if `HEALTHCAREADK_TEST_PERMISSIONS` is not `"1"`.
 
 ---
 
+## Live Testing Bug Fixes (2026-06-15)
+
+Bugs discovered during end-to-end live testing after initial deployment:
+
+| Bug | Root Cause | Fix |
+| --- | --- | --- |
+| Routing parse error on every query | Claude wraps JSON in markdown code fences; `json.loads` fails at char 0 | Strip fences before parse in `_route()` — split on first newline, strip trailing fence |
+| ETLAgent crashes on budget check | Single-pass snake_case regex splits each capital: `ETLAgent` → `e_t_l_agent` | Two-pass regex in `_agent_yaml_name()`: acronym boundary first, then lowercase→uppercase |
+| ClinicalAgent truncated on large result sets | `max_tokens=4096` in `_base.py` insufficient for 200-row lab tables | Raised to `max_tokens=8192` |
+| Unicode crash on Windows CLI | `print()` uses cp1252; Claude responses contain non-cp1252 characters | `sys.stdout.reconfigure(encoding="utf-8")` in `orchestrator.main()` |
+
+---
+
 ## Guardrails Summary
 
 | Guardrail | Enforcement Point |

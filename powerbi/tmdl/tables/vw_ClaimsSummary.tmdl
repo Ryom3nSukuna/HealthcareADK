@@ -1,0 +1,364 @@
+﻿table vw_ClaimsSummary
+
+	column ClaimID
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ClaimID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ClaimStatus
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ClaimStatus
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DenialReason
+		dataType: string
+		summarizeBy: none
+		sourceColumn: DenialReason
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column BilledAmount
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: BilledAmount
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column AllowedAmount
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: AllowedAmount
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column PaidAmount
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: PaidAmount
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column WriteOffAmount
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: WriteOffAmount
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ServiceDate
+		dataType: dateTime
+		formatString: Long Date
+		summarizeBy: none
+		sourceColumn: ServiceDate
+
+		variation Variation
+			isDefault
+			relationship: 91826039-df59-4ed7-a136-0cb30c56665c
+			defaultHierarchy: LocalDateTable_72aa0cd3-5cd0-4e1d-b25c-82e884e7b410.'Date Hierarchy'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ServiceYear
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: ServiceYear
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ServiceQuarter
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: ServiceQuarter
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ServiceMonth
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ServiceMonth
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ServiceMonthNum
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: ServiceMonthNum
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ClaimDate
+		dataType: dateTime
+		formatString: Long Date
+		summarizeBy: none
+		sourceColumn: ClaimDate
+
+		variation Variation
+			isDefault
+			relationship: 8dc91938-d3fc-44f4-b412-0b33bdbf679a
+			defaultHierarchy: LocalDateTable_724f0dbd-e0e0-4a0e-a916-f23ce68d91c3.'Date Hierarchy'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PatientID
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PatientID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PatientName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PatientName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Gender
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Gender
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DateOfBirth
+		dataType: dateTime
+		formatString: Long Date
+		summarizeBy: none
+		sourceColumn: DateOfBirth
+
+		variation Variation
+			isDefault
+			relationship: 62520c71-89ff-4681-99d6-634e7321034f
+			defaultHierarchy: LocalDateTable_86d033a3-58c5-46d8-ab6f-896d00f55d18.'Date Hierarchy'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PatientAgeAtService
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: PatientAgeAtService
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PatientState
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PatientState
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProviderID
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ProviderID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProviderName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ProviderName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProviderSpecialty
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ProviderSpecialty
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FacilityName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: FacilityName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FacilityType
+		dataType: string
+		summarizeBy: none
+		sourceColumn: FacilityType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FacilityState
+		dataType: string
+		summarizeBy: none
+		sourceColumn: FacilityState
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PayerName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PayerName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PayerType
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PayerType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PlanType
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PlanType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ICD10Code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ICD10Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DiagnosisDescription
+		dataType: string
+		summarizeBy: none
+		sourceColumn: DiagnosisDescription
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column CPTCode
+		dataType: string
+		summarizeBy: none
+		sourceColumn: CPTCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProcedureDescription
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ProcedureDescription
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProcedureBasePrice
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: ProcedureBasePrice
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Age Band' =
+			
+			SWITCH(
+			    TRUE(),
+			    vw_ClaimsSummary[PatientAgeAtService] <= 18, "0–18",
+			    vw_ClaimsSummary[PatientAgeAtService] <= 35, "19–35",
+			    vw_ClaimsSummary[PatientAgeAtService] <= 50, "36–50",
+			    vw_ClaimsSummary[PatientAgeAtService] <= 65, "51–65",
+			    "65+"
+			)
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition vw_ClaimsSummary = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(".\SQLEXPRESS", "HealthcareADK"),
+				    rpt_vw_ClaimsSummary = Source{[Schema="rpt",Item="vw_ClaimsSummary"]}[Data]
+				in
+				    rpt_vw_ClaimsSummary
+
+	changedProperty = Name
+
+	annotation PBI_ResultType = Table
+

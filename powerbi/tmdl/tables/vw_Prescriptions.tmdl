@@ -1,0 +1,268 @@
+﻿table vw_Prescriptions
+
+	column PrescriptionID
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PrescriptionID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DaysSupply
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: DaysSupply
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quantity
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: Quantity
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column RefillsAuthorized
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: RefillsAuthorized
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column RefillsRemaining
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: RefillsRemaining
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column CostToPatient
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: CostToPatient
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column CostToPayer
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: CostToPayer
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column TotalCost
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: TotalCost
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column PrescribedDate
+		dataType: dateTime
+		formatString: Long Date
+		summarizeBy: none
+		sourceColumn: PrescribedDate
+
+		variation Variation
+			isDefault
+			relationship: a082ab3d-dd46-461e-8b64-1c9011c9019a
+			defaultHierarchy: LocalDateTable_680575d7-3fb3-4fd5-85f7-84d8fe3f17fa.'Date Hierarchy'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PrescribedYear
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: PrescribedYear
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PrescribedQuarter
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: PrescribedQuarter
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FillDate
+		dataType: dateTime
+		formatString: Long Date
+		summarizeBy: none
+		sourceColumn: FillDate
+
+		variation Variation
+			isDefault
+			relationship: 7464a962-6320-42ad-94f7-9ca8a41a005a
+			defaultHierarchy: LocalDateTable_01605f8e-d5ad-4a55-b275-f4a7c5adeceb.'Date Hierarchy'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DrugName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: DrugName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column NDCCode
+		dataType: string
+		summarizeBy: none
+		sourceColumn: NDCCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Dosage
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Dosage
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Frequency
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Frequency
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PatientID
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PatientID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PatientName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PatientName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Gender
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Gender
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PatientState
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PatientState
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProviderName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ProviderName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Specialty
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Specialty
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PayerName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PayerName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PayerType
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PayerType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PlanType
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PlanType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition vw_Prescriptions = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(".\SQLEXPRESS", "HealthcareADK"),
+				    rpt_vw_Prescriptions = Source{[Schema="rpt",Item="vw_Prescriptions"]}[Data]
+				in
+				    rpt_vw_Prescriptions
+
+	changedProperty = Name
+
+	annotation PBI_ResultType = Table
+

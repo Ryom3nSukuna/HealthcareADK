@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "sqlserver": {
+      "command": "python",
+      "args": ["./mcp/sqlserver/server.py"]
+    },
+    "shell": {
+      "command": "python",
+      "args": ["./mcp/shell/server.py"]
+    },
+    "file": {
+      "command": "python",
+      "args": ["./mcp/file/server.py"]
+    },
+    "powerbi": {
+      "command": "python",
+      "args": ["./mcp/powerbi/server.py"]
+    }
+  }
+}

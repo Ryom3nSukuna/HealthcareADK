@@ -1,0 +1,32 @@
+# Environment / secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+
+# Data files (generated — too large for source control)
+landing_zone/
+
+# Power BI binary
+powerbi/*.pbix
+
+# Schema knowledge base (rebuilt from live DB)
+docs/schema_kb.json
+
+# Claude Code local settings (machine-specific permission overrides)
+.claude/settings.local.json
+
+# SSIS Visual Studio local state and build artifacts
+ssis/**/.vs/
+ssis/**/obj/
+ssis/**/bin/

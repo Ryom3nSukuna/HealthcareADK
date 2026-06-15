@@ -1,0 +1,264 @@
+﻿table _Measures
+
+	measure 'Total Claims' = COUNTROWS(vw_ClaimsSummary)
+
+	measure 'Total Billed' =
+			
+			SUM(vw_ClaimsSummary[BilledAmount])
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Allowed' =
+			
+			SUM(vw_ClaimsSummary[AllowedAmount])
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Paid' =
+			
+			SUM(vw_ClaimsSummary[PaidAmount])
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Write-Off' =
+			
+			SUM(vw_ClaimsSummary[WriteOffAmount])
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Denied Claims' =
+			
+			CALCULATE(
+			    COUNTROWS(vw_ClaimsSummary),
+			    vw_ClaimsSummary[ClaimStatus] = "Denied"
+			)
+		formatString: 0
+
+	measure 'Denial Rate %' =
+			
+			DIVIDE([Denied Claims], [Total Claims], 0) * 100
+		formatString: 0.0%
+
+	measure 'Approval Rate %' =
+			
+			DIVIDE(
+			    CALCULATE(COUNTROWS(vw_ClaimsSummary), vw_ClaimsSummary[ClaimStatus] = "Approved"),
+			    [Total Claims],
+			    0
+			) * 100
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Avg Claim Value' =
+			
+			DIVIDE([Total Billed], [Total Claims], 0)
+		formatString: \$#,0;(\$#,0);\$#,0
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Collection Rate %' =
+			
+			DIVIDE([Total Paid], [Total Billed], 0) * 100
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Unique Patients' =
+			
+			DISTINCTCOUNT(vw_ClaimsSummary[PatientID])
+		formatString: 0
+
+	measure 'Avg Patient Age' =
+			
+			AVERAGE(vw_ClaimsSummary[PatientAgeAtService])
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Providers' =
+			
+			DISTINCTCOUNT(vw_ProviderPerformance[ProviderID])
+
+	measure 'Provider Total Billed' =
+			
+			SUM(vw_ProviderPerformance[TotalBilled])
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Provider Total Paid' =
+			
+			SUM(vw_ProviderPerformance[TotalPaid])
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Avg Denial Rate %' =
+			
+			AVERAGE(vw_ProviderPerformance[DenialRatePct])
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Revenue' =
+			
+			CALCULATE(
+			    SUM(vw_FinancialKPIs[Amount]),
+			    vw_FinancialKPIs[TransactionType] = "Revenue"
+			)
+
+	measure 'Total Expenses' =
+			
+			CALCULATE(
+			    SUM(vw_FinancialKPIs[Amount]),
+			    vw_FinancialKPIs[TransactionType] = "Expense"
+			)
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Net Margin' =
+			
+			[Total Revenue] - [Total Expenses]
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Net Margin %' =
+			
+			DIVIDE([Net Margin], [Total Revenue], 0) * 100
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Revenue PY' =
+			
+			CALCULATE(
+			    [Total Revenue],
+			    FILTER(
+			        ALL(vw_FinancialKPIs),
+			        vw_FinancialKPIs[FiscalYear] = MAX(vw_FinancialKPIs[FiscalYear]) - 1
+			    )
+			)
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Revenue YoY %' =
+			
+			DIVIDE([Total Revenue] - [Revenue PY], [Revenue PY], 0) * 100
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Expenses PY' =
+			
+			CALCULATE(
+			    [Total Expenses],
+			    FILTER(
+			        ALL(vw_FinancialKPIs),
+			        vw_FinancialKPIs[FiscalYear] = MAX(vw_FinancialKPIs[FiscalYear]) - 1
+			    )
+			)
+		formatString: \$#,0;(\$#,0);\$#,0
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Expenses YoY %' =
+			
+			DIVIDE([Total Expenses] - [Expenses PY], [Expenses PY], 0) * 100
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Labs' =
+			
+			COUNTROWS(vw_LabResults)
+
+	measure 'Abnormal Labs' =
+			
+			CALCULATE(
+			    COUNTROWS(vw_LabResults),
+			    vw_LabResults[AbnormalFlag] <> "Normal"
+			)
+		formatString: 0
+
+	measure 'Abnormal Rate %' =
+			
+			DIVIDE([Abnormal Labs], [Total Labs], 0) * 100
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Critical Labs' =
+			
+			CALCULATE(
+			    COUNTROWS(vw_LabResults),
+			    vw_LabResults[AbnormalFlag] = "Critical"
+			)
+		formatString: 0
+
+	measure 'Critical Rate %' =
+			
+			DIVIDE([Critical Labs], [Total Labs], 0) * 100
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Prescriptions' =
+			
+			COUNTROWS(vw_Prescriptions)
+
+	measure 'Total Rx Cost' =
+			
+			SUM(vw_Prescriptions[TotalCost])
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Patient Cost' =
+			
+			SUM(vw_Prescriptions[CostToPatient])
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Payer Cost' =
+			
+			SUM(vw_Prescriptions[CostToPayer])
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Avg Cost per Rx' =
+			
+			DIVIDE([Total Rx Cost], [Total Prescriptions], 0)
+		formatString: \$#,0;(\$#,0);\$#,0
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Patient Cost Share %' =
+			
+			DIVIDE([Total Patient Cost], [Total Rx Cost], 0) * 100
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Payer Cost Share %' =
+			
+			DIVIDE([Total Payer Cost], [Total Rx Cost], 0) * 100
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Write-Off Rate %' =
+			
+			DIVIDE([Total Write-Off], [Total Billed], 0) * 100
+		formatString: 0.0%
+
+	column ID
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Measures = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"Column1", "ID"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

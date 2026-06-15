@@ -1,0 +1,15 @@
+# Data generation (Phase 1)
+faker
+pandas
+numpy
+openpyxl
+reportlab
+
+# Agents and MCP servers (Phase 5–6)
+anthropic
+pyodbc
+pyyaml
+python-dotenv
+
+# Tests (Phase 6)
+pytest

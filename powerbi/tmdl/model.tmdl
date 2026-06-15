@@ -1,0 +1,30 @@
+﻿model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-IN
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["vw_ClaimsSummary","vw_FinancialKPIs","vw_LabResults","vw_Prescriptions","vw_ProviderPerformance","_Measures"]
+
+ref table vw_ClaimsSummary
+ref table DateTableTemplate_57ffce5f-dbb2-44ab-94b8-3a59b8960775
+ref table LocalDateTable_72aa0cd3-5cd0-4e1d-b25c-82e884e7b410
+ref table LocalDateTable_724f0dbd-e0e0-4a0e-a916-f23ce68d91c3
+ref table LocalDateTable_86d033a3-58c5-46d8-ab6f-896d00f55d18
+ref table vw_FinancialKPIs
+ref table LocalDateTable_2b5e0683-1eba-45dd-8656-46e543eec5b9
+ref table vw_LabResults
+ref table LocalDateTable_fca31ffe-ac83-4271-b7d2-b6ed79bbf327
+ref table LocalDateTable_ede7c7ce-b92b-47ff-9f50-c5744f52c97b
+ref table vw_Prescriptions
+ref table LocalDateTable_680575d7-3fb3-4fd5-85f7-84d8fe3f17fa
+ref table LocalDateTable_01605f8e-d5ad-4a55-b275-f4a7c5adeceb
+ref table vw_ProviderPerformance
+ref table _Measures
+
+ref cultureInfo en-US
+

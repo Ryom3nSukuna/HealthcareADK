@@ -1,0 +1,240 @@
+﻿table vw_LabResults
+
+	column LabID
+		dataType: string
+		summarizeBy: none
+		sourceColumn: LabID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TestName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: TestName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column LOINCCode
+		dataType: string
+		summarizeBy: none
+		sourceColumn: LOINCCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ResultValue
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: ResultValue
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ResultUnit
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ResultUnit
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReferenceRangeLow
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: ReferenceRangeLow
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ReferenceRangeHigh
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: ReferenceRangeHigh
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column AbnormalFlag
+		dataType: string
+		summarizeBy: none
+		sourceColumn: AbnormalFlag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DeviationFromMid
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: DeviationFromMid
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column OrderDate
+		dataType: dateTime
+		formatString: Long Date
+		summarizeBy: none
+		sourceColumn: OrderDate
+
+		variation Variation
+			isDefault
+			relationship: 895c4b5b-962d-462c-a3c3-955808899071
+			defaultHierarchy: LocalDateTable_fca31ffe-ac83-4271-b7d2-b6ed79bbf327.'Date Hierarchy'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column OrderYear
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: OrderYear
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderQuarter
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: OrderQuarter
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ResultDate
+		dataType: dateTime
+		formatString: Long Date
+		summarizeBy: none
+		sourceColumn: ResultDate
+
+		variation Variation
+			isDefault
+			relationship: b3c59196-4d5f-42e2-a086-5a5fbfbedf04
+			defaultHierarchy: LocalDateTable_ede7c7ce-b92b-47ff-9f50-c5744f52c97b.'Date Hierarchy'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PatientID
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PatientID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PatientName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PatientName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Gender
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Gender
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PatientAge
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: PatientAge
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PatientState
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PatientState
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProviderName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ProviderName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Specialty
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Specialty
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FacilityName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: FacilityName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FacilityType
+		dataType: string
+		summarizeBy: none
+		sourceColumn: FacilityType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition vw_LabResults = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(".\SQLEXPRESS", "HealthcareADK"),
+				    rpt_vw_LabResults = Source{[Schema="rpt",Item="vw_LabResults"]}[Data]
+				in
+				    rpt_vw_LabResults
+
+	changedProperty = Name
+
+	annotation PBI_ResultType = Table
+

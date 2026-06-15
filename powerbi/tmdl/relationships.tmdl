@@ -1,0 +1,52 @@
+﻿relationship 91826039-df59-4ed7-a136-0cb30c56665c
+	joinOnDateBehavior: datePartOnly
+	fromColumn: vw_ClaimsSummary.ServiceDate
+	toColumn: LocalDateTable_72aa0cd3-5cd0-4e1d-b25c-82e884e7b410.Date
+
+relationship 8dc91938-d3fc-44f4-b412-0b33bdbf679a
+	joinOnDateBehavior: datePartOnly
+	fromColumn: vw_ClaimsSummary.ClaimDate
+	toColumn: LocalDateTable_724f0dbd-e0e0-4a0e-a916-f23ce68d91c3.Date
+
+relationship 62520c71-89ff-4681-99d6-634e7321034f
+	joinOnDateBehavior: datePartOnly
+	fromColumn: vw_ClaimsSummary.DateOfBirth
+	toColumn: LocalDateTable_86d033a3-58c5-46d8-ab6f-896d00f55d18.Date
+
+relationship e54622e5-c292-489f-aeab-bab87e0debdc
+	joinOnDateBehavior: datePartOnly
+	fromColumn: vw_FinancialKPIs.TransactionDate
+	toColumn: LocalDateTable_2b5e0683-1eba-45dd-8656-46e543eec5b9.Date
+
+relationship 895c4b5b-962d-462c-a3c3-955808899071
+	joinOnDateBehavior: datePartOnly
+	fromColumn: vw_LabResults.OrderDate
+	toColumn: LocalDateTable_fca31ffe-ac83-4271-b7d2-b6ed79bbf327.Date
+
+relationship b3c59196-4d5f-42e2-a086-5a5fbfbedf04
+	joinOnDateBehavior: datePartOnly
+	fromColumn: vw_LabResults.ResultDate
+	toColumn: LocalDateTable_ede7c7ce-b92b-47ff-9f50-c5744f52c97b.Date
+
+relationship a082ab3d-dd46-461e-8b64-1c9011c9019a
+	joinOnDateBehavior: datePartOnly
+	fromColumn: vw_Prescriptions.PrescribedDate
+	toColumn: LocalDateTable_680575d7-3fb3-4fd5-85f7-84d8fe3f17fa.Date
+
+relationship 7464a962-6320-42ad-94f7-9ca8a41a005a
+	joinOnDateBehavior: datePartOnly
+	fromColumn: vw_Prescriptions.FillDate
+	toColumn: LocalDateTable_01605f8e-d5ad-4a55-b275-f4a7c5adeceb.Date
+
+relationship 69894f9a-1f70-137a-3f59-8fdc0239796e
+	crossFilteringBehavior: bothDirections
+	toCardinality: many
+	fromColumn: vw_ClaimsSummary.PatientID
+	toColumn: vw_LabResults.PatientID
+
+relationship d14f01c0-4802-4275-b433-0c669fccfd10
+	crossFilteringBehavior: bothDirections
+	toCardinality: many
+	fromColumn: vw_ClaimsSummary.PatientID
+	toColumn: vw_Prescriptions.PatientID
+

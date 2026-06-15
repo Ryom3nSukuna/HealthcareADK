@@ -1,0 +1,164 @@
+﻿table vw_ProviderPerformance
+
+	column ProviderID
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ProviderID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProviderName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ProviderName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Specialty
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Specialty
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column YearsExperience
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: YearsExperience
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FacilityName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: FacilityName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FacilityState
+		dataType: string
+		summarizeBy: none
+		sourceColumn: FacilityState
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ServiceYear
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: ServiceYear
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ServiceQuarter
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: ServiceQuarter
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TotalClaims
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: TotalClaims
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TotalBilled
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: TotalBilled
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column TotalPaid
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: TotalPaid
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column AvgClaimValue
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: AvgClaimValue
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column DeniedClaims
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: DeniedClaims
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ApprovedClaims
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: ApprovedClaims
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DenialRatePct
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: DenialRatePct
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition vw_ProviderPerformance = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(".\SQLEXPRESS", "HealthcareADK"),
+				    rpt_vw_ProviderPerformance = Source{[Schema="rpt",Item="vw_ProviderPerformance"]}[Data]
+				in
+				    rpt_vw_ProviderPerformance
+
+	changedProperty = Name
+
+	annotation PBI_ResultType = Table
+

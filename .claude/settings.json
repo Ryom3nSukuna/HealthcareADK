@@ -1,0 +1,93 @@
+{
+  "enableAllProjectMcpServers": true,
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python scripts/hooks/guard_file_read.py",
+            "shell": "bash",
+            "timeout": 10,
+            "statusMessage": "Checking read path..."
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__file__read_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python scripts/hooks/guard_file_read.py",
+            "shell": "bash",
+            "timeout": 10,
+            "statusMessage": "Checking read path..."
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__sqlserver__execute_query",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python scripts/hooks/guard_query.py",
+            "shell": "bash",
+            "timeout": 10,
+            "statusMessage": "Checking query safety..."
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__file__write_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python scripts/hooks/guard_file_write.py",
+            "shell": "bash",
+            "timeout": 10,
+            "statusMessage": "Checking write path..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "mcp__shell__run_python_script",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python scripts/hooks/on_data_drop.py",
+            "shell": "bash",
+            "timeout": 300,
+            "statusMessage": "Running ETL pipeline..."
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__shell__run_ssis_package",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python scripts/hooks/on_ssis_complete.py",
+            "shell": "bash",
+            "timeout": 30,
+            "statusMessage": "Checking ETL log..."
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__shell__run_pbi_tools",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python scripts/hooks/on_pbi_deploy.py",
+            "shell": "bash",
+            "timeout": 10,
+            "statusMessage": "Summarizing pbi-tools output..."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,145 @@
+﻿table vw_FinancialKPIs
+
+	column FacilityName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: FacilityName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FacilityType
+		dataType: string
+		summarizeBy: none
+		sourceColumn: FacilityType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FacilityState
+		dataType: string
+		summarizeBy: none
+		sourceColumn: FacilityState
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TransactionType
+		dataType: string
+		summarizeBy: none
+		sourceColumn: TransactionType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Department
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Department
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column GLAccount
+		dataType: string
+		summarizeBy: none
+		sourceColumn: GLAccount
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalYear
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: FiscalYear
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalQuarter
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: FiscalQuarter
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: MonthName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthNumber
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: MonthNumber
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TransactionDate
+		dataType: dateTime
+		formatString: Long Date
+		summarizeBy: none
+		sourceColumn: TransactionDate
+
+		variation Variation
+			isDefault
+			relationship: e54622e5-c292-489f-aeab-bab87e0debdc
+			defaultHierarchy: LocalDateTable_2b5e0683-1eba-45dd-8656-46e543eec5b9.'Date Hierarchy'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Amount
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: Amount
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column CostCenter
+		dataType: string
+		summarizeBy: none
+		sourceColumn: CostCenter
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition vw_FinancialKPIs = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(".\SQLEXPRESS", "HealthcareADK"),
+				    rpt_vw_FinancialKPIs = Source{[Schema="rpt",Item="vw_FinancialKPIs"]}[Data]
+				in
+				    rpt_vw_FinancialKPIs
+
+	changedProperty = Name
+
+	annotation PBI_ResultType = Table
+

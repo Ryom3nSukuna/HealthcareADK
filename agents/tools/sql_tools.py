@@ -2,12 +2,18 @@
 SQL tool implementations for HealthcareADK domain agents.
 
 Connection is read at call time from environment variables:
-  HEALTHCAREADK_SQL_SERVER  — e.g. ".\\SQLEXPRESS"
-  HEALTHCAREADK_SQL_DB      — e.g. "HealthcareADK"
+  HEALTHCAREADK_SQL_SERVER          — e.g. ".\\SQLEXPRESS"
+  HEALTHCAREADK_SQL_DB              — e.g. "HealthcareADK"
+  HEALTHCAREADK_PWD_<DB_LOGIN>      — e.g. HEALTHCAREADK_PWD_AGENT_CLAIMS
+
+Each agent connects as its own SQL Server login (db_login in agents/config/*.yaml),
+so the schema-level GRANT/DENY rules in sql/10_agent_permissions.sql are the real
+enforcement boundary — the allowed_tools list is the first line of defense, not the only one.
 
 Each tool is registered with its MCP tool name so agent configs can reference the
 same allowed_tools list regardless of whether they run via MCP or the Python agent layer.
 """
+import functools
 import json
 import os
 import re
@@ -26,12 +32,13 @@ _kb_cache: dict | None = None
 # Connection
 # ------------------------------------------------------------------
 
-def _get_conn() -> pyodbc.Connection:
+def _get_conn(db_login: str) -> pyodbc.Connection:
     server = os.environ["HEALTHCAREADK_SQL_SERVER"]
     db = os.environ["HEALTHCAREADK_SQL_DB"]
+    pwd = os.environ[f"HEALTHCAREADK_PWD_{db_login.upper()}"]
     conn_str = (
         "DRIVER={ODBC Driver 17 for SQL Server};"
-        f"SERVER={server};DATABASE={db};Trusted_Connection=yes;"
+        f"SERVER={server};DATABASE={db};UID={db_login};PWD={pwd};"
     )
     return pyodbc.connect(conn_str)
 
@@ -70,11 +77,11 @@ def _score(words: list[str], text: str) -> int:
 # Tool functions
 # ------------------------------------------------------------------
 
-def _execute_query(sql: str) -> str:
+def _execute_query(db_login: str, sql: str) -> str:
     if not sql.strip().upper().startswith("SELECT"):
         return json.dumps({"error": "Only SELECT statements are allowed."})
     try:
-        conn = _get_conn()
+        conn = _get_conn(db_login)
         cursor = conn.cursor()
         cursor.execute(sql)
         result = _cursor_to_dict(cursor)
@@ -84,7 +91,7 @@ def _execute_query(sql: str) -> str:
         return json.dumps({"error": str(exc)})
 
 
-def _search_schema(query: str, top_n: int = 10) -> str:
+def _search_schema(db_login: str, query: str, top_n: int = 10) -> str:
     kb = _load_kb()
     if not kb:
         return json.dumps({"error": "Schema knowledge base not found. Run scripts/build_schema_kb.py first."})
@@ -112,11 +119,11 @@ def _search_schema(query: str, top_n: int = 10) -> str:
 
 
 def _get_claims_summary(
-    start_date: str = None, end_date: str = None, payer_type: str = None,
+    db_login: str, start_date: str = None, end_date: str = None, payer_type: str = None,
     claim_status: str = None, state: str = None, top_n: int = 100,
 ) -> str:
     try:
-        conn = _get_conn()
+        conn = _get_conn(db_login)
         cursor = conn.cursor()
         cursor.execute(
             "EXEC dw.usp_GetClaimsSummary @StartDate=?, @EndDate=?, @PayerType=?, @ClaimStatus=?, @State=?, @TopN=?",
@@ -129,9 +136,9 @@ def _get_claims_summary(
         return json.dumps({"error": str(exc)})
 
 
-def _get_financial_yoy(start_year: int = None, end_year: int = None, facility_id: str = None) -> str:
+def _get_financial_yoy(db_login: str, start_year: int = None, end_year: int = None, facility_id: str = None) -> str:
     try:
-        conn = _get_conn()
+        conn = _get_conn(db_login)
         cursor = conn.cursor()
         cursor.execute(
             "EXEC dw.usp_GetFinancialYoY @StartYear=?, @EndYear=?, @FacilityID=?",
@@ -144,9 +151,9 @@ def _get_financial_yoy(start_year: int = None, end_year: int = None, facility_id
         return json.dumps({"error": str(exc)})
 
 
-def _get_provider_performance(year: int = None, specialty: str = None, state: str = None, top_n: int = 50) -> str:
+def _get_provider_performance(db_login: str, year: int = None, specialty: str = None, state: str = None, top_n: int = 50) -> str:
     try:
-        conn = _get_conn()
+        conn = _get_conn(db_login)
         cursor = conn.cursor()
         cursor.execute(
             "EXEC dw.usp_GetProviderPerformance @Year=?, @Specialty=?, @State=?, @TopN=?",
@@ -160,11 +167,11 @@ def _get_provider_performance(year: int = None, specialty: str = None, state: st
 
 
 def _get_abnormal_labs(
-    patient_id: str = None, start_date: str = None, end_date: str = None,
+    db_login: str, patient_id: str = None, start_date: str = None, end_date: str = None,
     flag_filter: str = None, top_n: int = 200,
 ) -> str:
     try:
-        conn = _get_conn()
+        conn = _get_conn(db_login)
         cursor = conn.cursor()
         cursor.execute(
             "EXEC dw.usp_GetAbnormalLabResults @PatientID=?, @StartDate=?, @EndDate=?, @FlagFilter=?, @TopN=?",
@@ -177,9 +184,9 @@ def _get_abnormal_labs(
         return json.dumps({"error": str(exc)})
 
 
-def _get_patient_timeline(patient_id: str, start_date: str = None, end_date: str = None) -> str:
+def _get_patient_timeline(db_login: str, patient_id: str, start_date: str = None, end_date: str = None) -> str:
     try:
-        conn = _get_conn()
+        conn = _get_conn(db_login)
         cursor = conn.cursor()
         cursor.execute(
             "EXEC dw.usp_GetPatientTimeline @PatientID=?, @StartDate=?, @EndDate=?",
@@ -192,9 +199,9 @@ def _get_patient_timeline(patient_id: str, start_date: str = None, end_date: str
         return json.dumps({"error": str(exc)})
 
 
-def _get_schema(table: str, schema: str = "rpt") -> str:
+def _get_schema(db_login: str, table: str, schema: str = "rpt") -> str:
     try:
-        conn = _get_conn()
+        conn = _get_conn(db_login)
         cursor = conn.cursor()
         cursor.execute(
             "SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, IS_NULLABLE "
@@ -213,9 +220,9 @@ def _get_schema(table: str, schema: str = "rpt") -> str:
         return json.dumps({"error": str(exc)})
 
 
-def _list_tables(schema: str = "rpt") -> str:
+def _list_tables(db_login: str, schema: str = "rpt") -> str:
     try:
-        conn = _get_conn()
+        conn = _get_conn(db_login)
         cursor = conn.cursor()
         cursor.execute(
             "SELECT TABLE_NAME, TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=? ORDER BY TABLE_TYPE, TABLE_NAME",
@@ -375,6 +382,11 @@ TOOL_REGISTRY: dict[str, dict] = {
 }
 
 
-def build_tools(allowed_mcp_names: list[str]) -> list[dict]:
-    """Return tool dicts for the given MCP tool names (preserving order, silently skipping unknowns)."""
-    return [TOOL_REGISTRY[name] for name in allowed_mcp_names if name in TOOL_REGISTRY]
+def build_tools(allowed_mcp_names: list[str], db_login: str) -> list[dict]:
+    """Return tool dicts for the given MCP tool names, bound to db_login's SQL Server credentials
+    (preserving order, silently skipping unknowns)."""
+    return [
+        {"definition": TOOL_REGISTRY[name]["definition"], "fn": functools.partial(TOOL_REGISTRY[name]["fn"], db_login)}
+        for name in allowed_mcp_names
+        if name in TOOL_REGISTRY
+    ]

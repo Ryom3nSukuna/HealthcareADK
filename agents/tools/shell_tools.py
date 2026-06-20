@@ -3,7 +3,12 @@ Shell tool implementations for HealthcareADK domain agents (ETLAgent, ReportingA
 
 Paths are resolved relative to project subdirectories; traversal is blocked.
 Server/DB for sqlcmd read from environment variables at call time.
+
+run_sql_script authenticates as the calling agent's own SQL Server login
+(db_login in agents/config/*.yaml) rather than the trusted (Windows) connection,
+so it is bound by the same GRANT/DENY rules as sql_tools.py — see sql/10_agent_permissions.sql.
 """
+import functools
 import json
 import os
 import shutil
@@ -26,15 +31,18 @@ def _safe_resolve(base_dir: Path, relative_path: str) -> Path:
     return resolved
 
 
-def _run(args: list) -> str:
+def _run(args: list, extra_env: dict | None = None) -> str:
+    env = {**_ENV, **extra_env} if extra_env else _ENV
     try:
         result = subprocess.run(
             args,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=_TIMEOUT,
             stdin=subprocess.DEVNULL,
-            env=_ENV,
+            env=env,
         )
         return json.dumps({"returncode": result.returncode, "stdout": result.stdout, "stderr": result.stderr}, indent=2)
     except subprocess.TimeoutExpired:
@@ -47,7 +55,7 @@ def _run(args: list) -> str:
 # Tool functions
 # ------------------------------------------------------------------
 
-def _run_ssis_package(package_path: str, config_path: str = None) -> str:
+def _run_ssis_package(db_login: str, package_path: str, config_path: str = None) -> str:
     try:
         pkg = _safe_resolve(_SSIS_DIR, package_path)
         args = ["dtexec", "/F", str(pkg)]
@@ -59,7 +67,7 @@ def _run_ssis_package(package_path: str, config_path: str = None) -> str:
         return json.dumps({"returncode": -1, "stdout": "", "stderr": str(exc)})
 
 
-def _run_python_script(script_name: str, args: list = None) -> str:
+def _run_python_script(db_login: str, script_name: str, args: list = None) -> str:
     try:
         script = _safe_resolve(_SCRIPTS_DIR, script_name)
         cmd = ["python", str(script)] + [str(a) for a in (args or [])]
@@ -68,7 +76,7 @@ def _run_python_script(script_name: str, args: list = None) -> str:
         return json.dumps({"returncode": -1, "stdout": "", "stderr": str(exc)})
 
 
-def _run_pbi_tools(subcommand: str, args: list = None) -> str:
+def _run_pbi_tools(db_login: str, subcommand: str, args: list = None) -> str:
     exe = shutil.which("pbi-tools.core")
     if not exe:
         return json.dumps({"returncode": -1, "stdout": "", "stderr": "pbi-tools.core not found on PATH."})
@@ -79,13 +87,16 @@ def _run_pbi_tools(subcommand: str, args: list = None) -> str:
         return json.dumps({"returncode": -1, "stdout": "", "stderr": str(exc)})
 
 
-def _run_sql_script(script_path: str) -> str:
+def _run_sql_script(db_login: str, script_path: str) -> str:
     try:
         server = os.environ["HEALTHCAREADK_SQL_SERVER"]
         db = os.environ["HEALTHCAREADK_SQL_DB"]
+        pwd = os.environ[f"HEALTHCAREADK_PWD_{db_login.upper()}"]
         script = _safe_resolve(_SQL_DIR, script_path)
-        args = ["sqlcmd", "-S", server, "-d", db, "-E", "-i", str(script)]
-        return _run(args)
+        args = ["sqlcmd", "-S", server, "-d", db, "-U", db_login, "-i", str(script)]
+        # Password passed via SQLCMDPASSWORD env var, not -P, so it never appears
+        # in the process command line (visible to other users via tasklist/ps).
+        return _run(args, extra_env={"SQLCMDPASSWORD": pwd})
     except Exception as exc:
         return json.dumps({"returncode": -1, "stdout": "", "stderr": str(exc)})
 
@@ -157,5 +168,11 @@ TOOL_REGISTRY: dict[str, dict] = {
 }
 
 
-def build_tools(allowed_mcp_names: list[str]) -> list[dict]:
-    return [TOOL_REGISTRY[name] for name in allowed_mcp_names if name in TOOL_REGISTRY]
+def build_tools(allowed_mcp_names: list[str], db_login: str) -> list[dict]:
+    """Return tool dicts for the given MCP tool names, bound to db_login (used by run_sql_script
+    to authenticate as the calling agent's own SQL Server login)."""
+    return [
+        {"definition": TOOL_REGISTRY[name]["definition"], "fn": functools.partial(TOOL_REGISTRY[name]["fn"], db_login)}
+        for name in allowed_mcp_names
+        if name in TOOL_REGISTRY
+    ]

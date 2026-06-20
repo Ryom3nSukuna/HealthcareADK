@@ -248,7 +248,7 @@ class TestToolIsolation:
         from agents.tools.sql_tools import build_tools
 
         config = load_config("claims_agent")
-        tools = build_tools(config["allowed_tools"])
+        tools = build_tools(config["allowed_tools"], config["db_login"])
 
         # Claude first requests a file tool (not in ClaimsAgent's allowlist)
         tool_req = _tool_use_response(
@@ -276,7 +276,7 @@ class TestToolIsolation:
 
         config = load_config("etl_agent")
         allowed = config["allowed_tools"]
-        tools = build_shell_tools(allowed) + build_sql_tools(allowed)
+        tools = build_shell_tools(allowed, config["db_login"]) + build_sql_tools(allowed, config["db_login"])
 
         tool_req = _tool_use_response(
             "write_file",
@@ -304,9 +304,9 @@ class TestToolIsolation:
         config = load_config("reporting_agent")
         allowed = config["allowed_tools"]
         tools = (
-            build_sql_tools(allowed)
+            build_sql_tools(allowed, config["db_login"])
             + build_file_tools(allowed)
-            + build_shell_tools(allowed)
+            + build_shell_tools(allowed, config["db_login"])
         )
 
         tool_req = _tool_use_response(

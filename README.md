@@ -50,7 +50,7 @@ See [CLAUDE.md](CLAUDE.md) for full agent roles, guardrails, and behavior rules.
 
 ## Project Status
 
-All 6 phases complete. See [docs/plan.md](docs/plan.md) for the detailed phase breakdown.
+Phases 1–6 complete. Phase 7 (Smart Caching + Chat Frontend) in progress — both caching layers are live; the chat frontend is not yet built. See [docs/plan.md](docs/plan.md) for the detailed phase breakdown.
 
 ---
 
@@ -144,6 +144,7 @@ Then apply users, GRANTs, and DENYs in SSMS:
 ```
 sql/10_agent_permissions.sql
 sql/11_agent_usage_views.sql
+sql/12_query_cache.sql
 ```
 
 ### 5. Generate synthetic data and run ETL
@@ -160,7 +161,7 @@ Then run the SSIS packages (see `ssis/SSIS_Design_Guide.md`) or call `EXEC dw.us
 
 ### Unit tests — no database or API key required
 
-Tests the Python-level guardrails: agent routing, multi-hop dispatch, budget escalation, and out-of-scope tool blocking. All Claude API calls and DB connections are mocked.
+Tests the Python-level guardrails: agent routing, multi-hop dispatch, budget escalation, out-of-scope tool blocking, and the Layer 2 response cache (hit skips dispatch, miss writes with the agent's configured TTL). All Claude API calls and DB connections are mocked.
 
 ```powershell
 pytest tests/test_phase6.py -v
@@ -189,4 +190,5 @@ Each test class maps to one agent login (`agent_claims`, `agent_clinical`, etc.)
 | BI | Power BI |
 | AI | Claude (Anthropic) |
 | Agent Framework | Claude Agent SDK + MCP |
+| Caching | Anthropic prompt caching (`cache_control`) + SQL Server response cache (`dw.QueryCache`) |
 | Dev Environment | VS Code + Claude Code |

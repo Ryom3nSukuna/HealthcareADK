@@ -67,6 +67,8 @@ So 4 of 6 domain agents plus the orchestrator's routing call get **zero** benefi
 
 ## Layer 2 — Response Cache (SQL Server)
 
+**Status:** ✅ Implemented and live-tested 2026-06-20. Unlike Layer 1, this benefits **all 7 agents uniformly** — there's no minimum-size threshold, so it's the layer that actually matters for cost reduction across ClaimsAgent/FinancialAgent/ProviderAgent/ETLAgent (the four that get nothing from Layer 1).
+
 ### `dw.QueryCache` Table (`sql/12_query_cache.sql`)
 
 ```sql
@@ -82,7 +84,9 @@ CREATE TABLE dw.QueryCache (
 );
 ```
 
-### Cache Key
+`agent_orchestrator` is the only login granted `SELECT, INSERT, DELETE` on this table — cache reads/writes/invalidation are centralized in `agents/cache.py`, rather than granting every domain agent its own DELETE rights. Connects via SQL auth (`UID=agent_orchestrator`), consistent with the rest of the agent fleet — no `Trusted_Connection`.
+
+### Cache Key (`agents/cache.py`)
 
 ```python
 import hashlib
@@ -91,7 +95,7 @@ key = hashlib.sha256(f"{agent_name}::{query.strip().lower()}".encode()).hexdiges
 
 ### TTL Per Agent
 
-Configured in each `agents/config/*.yaml` as `cache_ttl_minutes`:
+Configured in each `agents/config/*.yaml` as `cache_ttl_minutes` (read by the orchestrator via `config.get("cache_ttl_minutes", 30)`):
 
 | Agent | TTL | Rationale |
 | --- | --- | --- |
@@ -101,30 +105,42 @@ Configured in each `agents/config/*.yaml` as `cache_ttl_minutes`:
 | ProviderAgent | 30 min | Provider metrics relatively stable intra-day |
 | FinancialAgent | 60 min | YoY/KPI numbers change only on ETL runs |
 | ReportingAgent | 60 min | View definitions rarely change |
-| OrchestratorAgent | 30 min | Default for schema lookups |
 
-### Cache Flow in Orchestrator
+OrchestratorAgent's own routing call is never cached — routing decisions must reflect the current request, not a 30-minute-stale one.
+
+### Cache Flow (`agents/orchestrator.py:_dispatch()`)
+
+The cache check lives inside `_dispatch()` itself (not a separate wrapper around it), so it applies uniformly to both single-agent and multi-hop dispatch — each leg of a multi-hop request is checked/cached independently, keyed by its own `(agent_name, query)` pair:
 
 ```python
-# Before dispatch
-cached = cache_get(agent_name, query)
-if cached:
-    return cached          # 0 tokens, instant
+def _dispatch(agent_name, user_request, session_id, client):
+    cached = cache_get(agent_name, user_request)
+    if cached is not None:
+        return cached                              # 0 tokens, instant — budget check never runs
 
-# After dispatch
-result = _dispatch(agent_name, query, session_id, client)
-cache_set(agent_name, query, result, ttl_minutes)
-return result
+    budget_msg = _check_budget(agent_name, session_id)
+    if budget_msg:
+        return f"[OrchestratorAgent] {budget_msg}"
+
+    result = module.run(user_request, session_id, client)
+
+    config = _load_config(module_key)
+    cache_set(agent_name, user_request, result, config.get("cache_ttl_minutes", 30))
+
+    if agent_name == "ETLAgent":
+        cache_invalidate(["ETLAgent", "ClinicalAgent"])
+
+    return result
 ```
 
 ### Cache Invalidation
 
-When ETLAgent runs successfully, flush stale entries:
+Triggered from `orchestrator.py` itself (not `etl_agent.py` as originally sketched) immediately after a successful ETLAgent dispatch — this avoids needing to grant `agent_etl` its own DELETE rights on `dw.QueryCache`, keeping cache ownership centralized in the orchestrator.
 
-```python
-# In etl_agent.py after a successful run
-cache_invalidate(["ETLAgent", "ClinicalAgent"])
-```
+### Live verification (2026-06-20)
+
+- Identical query run twice via `python -m agents.orchestrator`: second call returned byte-identical output, `dw.AgentUsageLog` showed only **1** row for the session (the domain agent's `client.messages.create` was never invoked on the hit), and `dw.QueryCache.ExpiresAt` matched `CreatedAt + 30 min` exactly (ClaimsAgent's configured TTL).
+- ETLAgent dispatch confirmed to purge `ClinicalAgent`'s cache row (count went 1 → 0 immediately after).
 
 ---
 
@@ -182,10 +198,11 @@ uvicorn api.main:app --reload --port 8000
 
 ## SQL Artifacts
 
-| File | Purpose |
-| --- | --- |
-| `sql/12_query_cache.sql` | `dw.QueryCache` DDL + index |
-| Update `sql/09_agent_usage_log.sql` | Add `CachedTokens INT DEFAULT 0` column |
+| File | Purpose | Status |
+| --- | --- | --- |
+| `sql/12_query_cache.sql` | `dw.QueryCache` DDL + indexes + `agent_orchestrator` grants | ✅ Deployed |
+| `sql/09_agent_usage_log.sql` | `CachedTokens INT DEFAULT 0` column (idempotent `ALTER`) | ✅ Deployed |
+| `sql/11_agent_usage_views.sql` | `rpt.vw_AgentUsage` + `CacheHitPct`; `dw.usp_GetAgentUsage` rollup `TotalCachedTokens` | ✅ Deployed |
 
 ---
 

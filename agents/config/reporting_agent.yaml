@@ -39,3 +39,4 @@ db_schemas:
   - rpt
 
 token_budget: 25000
+cache_ttl_minutes: 60

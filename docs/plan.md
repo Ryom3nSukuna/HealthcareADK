@@ -202,14 +202,16 @@ Two test suites — see [docs/phase6_design.md § Testing](phase6_design.md) for
 - [x] Log cache hits to `dw.AgentUsageLog` (`CachedTokens` column added to `09_agent_usage_log.sql`; surfaced in `11_agent_usage_views.sql`)
 - **Finding:** only ClinicalAgent and ReportingAgent actually cross this account's real cacheable-prefix minimum (~1300–1400 tokens, higher than the commonly-cited 1024). ClaimsAgent/FinancialAgent/ProviderAgent/ETLAgent/orchestrator routing get no benefit from Layer 1 — see [phase7_design.md § Layer 1](phase7_design.md#layer-1--anthropic-prompt-caching) for the measured breakdown. Code left in place (harmless no-op below threshold); Layer 2 is the layer that matters for universal savings.
 
-#### 2 — Layer 2: Response Cache (SQL Server)
+#### 2 — Layer 2: Response Cache (SQL Server) ✅
 
-- [ ] `sql/12_query_cache.sql` — `dw.QueryCache` table: `CacheKey`, `AgentName`, `Query`, `Response`, `CreatedAt`, `ExpiresAt`
-- [ ] Cache key: `SHA256(lower(strip(query)))` + agent name
-- [ ] TTL per agent (in `agents/config/*.yaml`): ETLAgent/ClinicalAgent = 15 min, ClaimsAgent/ProviderAgent = 30 min, FinancialAgent/ReportingAgent = 60 min
-- [ ] Cache check in `agents/orchestrator.py` — before `_dispatch()`, query cache; on hit, return immediately with 0 API tokens
-- [ ] Cache write in `agents/orchestrator.py` — after `_dispatch()`, insert response + expiry
-- [ ] Cache invalidation: ETLAgent run → flush ETLAgent + ClinicalAgent cache entries
+- [x] `sql/12_query_cache.sql` — `dw.QueryCache` table: `CacheKey`, `AgentName`, `Query`, `Response`, `CreatedAt`, `ExpiresAt`; `agent_orchestrator` granted SELECT/INSERT/DELETE
+- [x] `agents/cache.py` — `cache_get`/`cache_set`/`cache_invalidate`; key = `SHA256(agent_name + "::" + lower(strip(query)))`; connects via `agent_orchestrator`'s own SQL login, not trusted auth
+- [x] TTL per agent added to `agents/config/*.yaml` as `cache_ttl_minutes`: ETLAgent/ClinicalAgent = 15 min, ClaimsAgent/ProviderAgent = 30 min, FinancialAgent/ReportingAgent = 60 min
+- [x] Cache check inside `agents/orchestrator.py:_dispatch()` — applies per-leg to both single-agent and multi-hop dispatch; on hit, returns immediately, budget check never runs
+- [x] Cache write inside `_dispatch()` after a fresh dispatch, using the agent's configured TTL
+- [x] Cache invalidation — ETLAgent dispatch flushes `ETLAgent` + `ClinicalAgent` cache entries (implemented in `orchestrator.py`, not `etl_agent.py`, to keep cache ownership/DB grants centralized to `agent_orchestrator`)
+- [x] 2 new unit tests (`TestResponseCache`) + autouse fixture so the other 9 tests don't hit real DB through the new cache calls — 11/11 passing
+- [x] Live-verified: identical query run twice → second call returned byte-identical output with `AgentUsageLog` showing only 1 row for the session (0 tokens on the hit); `ExpiresAt` matched `CreatedAt + 30 min` exactly; ETLAgent dispatch confirmed to purge ClinicalAgent's cache row
 
 #### 3 — Chat Frontend (FastAPI + UI)
 

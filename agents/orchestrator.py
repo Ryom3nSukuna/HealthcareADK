@@ -16,6 +16,8 @@ import yaml
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
+from agents.cache import cache_get, cache_invalidate, cache_set
+
 load_dotenv()
 
 AGENTS_DIR = Path(__file__).parent
@@ -71,10 +73,15 @@ def _check_budget(agent_name: str, session_id: str) -> str | None:
 
 
 def _dispatch(agent_name: str, user_request: str, session_id: str, client: Anthropic) -> str:
-    """Import and run a domain agent module."""
+    """Import and run a domain agent module. Checked against the Layer 2 response
+    cache first — a hit returns instantly with zero API tokens spent."""
     module_key = AGENT_MODULE_MAP.get(agent_name)
     if not module_key:
         return f"[OrchestratorAgent] Unknown agent: {agent_name}"
+
+    cached = cache_get(agent_name, user_request)
+    if cached is not None:
+        return cached
 
     budget_msg = _check_budget(agent_name, session_id)
     if budget_msg:
@@ -85,7 +92,17 @@ def _dispatch(agent_name: str, user_request: str, session_id: str, client: Anthr
     except ModuleNotFoundError:
         return f"[OrchestratorAgent] Agent module not yet built: agents/{module_key}.py"
 
-    return module.run(user_request, session_id, client)
+    result = module.run(user_request, session_id, client)
+
+    config = _load_config(module_key)
+    cache_set(agent_name, user_request, result, config.get("cache_ttl_minutes", 30))
+
+    # ETL runs invalidate clinical data freshness too — drop both caches so the
+    # next query for either reflects the new load instead of a stale cached answer.
+    if agent_name == "ETLAgent":
+        cache_invalidate(["ETLAgent", "ClinicalAgent"])
+
+    return result
 
 
 def run(user_request: str, session_id: str | None = None) -> str:

@@ -9,6 +9,7 @@ Test coverage:
   2. MultiHopDispatch    — Two-agent queries produce merged, section-headed output
   3. BudgetEscalation   — Exhausted budget blocks dispatch and returns escalation message
   4. ToolIsolation       — Agents cannot invoke tools outside their allowed_tools list
+  5. ResponseCache       — Layer 2 cache hit skips dispatch; miss dispatches and writes
 """
 
 import json
@@ -20,6 +21,18 @@ import pytest
 
 # Ensure project root is on sys.path when pytest is run from any directory
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+
+@pytest.fixture(autouse=True)
+def _no_real_cache():
+    """orchestrator.py binds cache_get/cache_set/cache_invalidate via `from agents.cache
+    import ...`, so they must be patched on agents.orchestrator (the importing module's
+    namespace), not agents.cache. Applies to every test so none of them hit a real DB
+    through the Layer 2 cache check."""
+    with patch("agents.orchestrator.cache_get", return_value=None), \
+         patch("agents.orchestrator.cache_set"), \
+         patch("agents.orchestrator.cache_invalidate"):
+        yield
 
 
 # ---------------------------------------------------------------------------
@@ -326,3 +339,50 @@ class TestToolIsolation:
         assert any("not available" in c.lower() for c in contents), (
             f"Expected 'not available' in tool_result; got: {contents}"
         )
+
+
+# ---------------------------------------------------------------------------
+# 5. Response cache (Layer 2)
+# ---------------------------------------------------------------------------
+
+class TestResponseCache:
+    """Layer 2 response cache short-circuits dispatch on a hit and writes a
+    fresh entry (with the agent's configured TTL) on a miss."""
+
+    def test_cache_hit_skips_dispatch_and_domain_agent_api_call(self):
+        routing = _routing_response(["ClaimsAgent"], rationale="'denial rate' -> ClaimsAgent")
+        client = _mock_client(routing)  # only the routing call should ever fire
+
+        with patch("agents.orchestrator.Anthropic", return_value=client):
+            with patch("agents.orchestrator.cache_get",
+                       return_value="CACHED: 14.2% denial rate") as mock_get, \
+                 patch("agents.orchestrator.cache_set") as mock_set:
+                from agents.orchestrator import run
+                result = run("What is the denial rate for Medicare claims?", session_id="t5-cache-hit")
+
+        assert result == "CACHED: 14.2% denial rate"
+        # Only the routing call happened — _dispatch() returned on the cache hit
+        # before ever importing/calling the domain agent module.
+        assert client.messages.create.call_count == 1
+        mock_get.assert_called_once_with("ClaimsAgent", "What is the denial rate for Medicare claims?")
+        mock_set.assert_not_called()
+
+    def test_cache_miss_dispatches_and_writes_with_configured_ttl(self):
+        routing = _routing_response(["ClaimsAgent"])
+        agent_answer = _text_response("Denial rate: 14.2%")
+
+        with patch("agents.orchestrator.Anthropic",
+                   return_value=_mock_client(routing, agent_answer)):
+            with patch("agents.orchestrator.cache_get", return_value=None), \
+                 patch("agents.orchestrator.cache_set") as mock_set:
+                with patch("agents.budget_tracker.remaining", return_value=19_000):
+                    with patch("agents.budget_tracker.record"):
+                        from agents.orchestrator import run
+                        result = run("What is the denial rate?", session_id="t5-cache-miss")
+
+        assert "denial" in result.lower()
+        mock_set.assert_called_once()
+        args, _ = mock_set.call_args
+        assert args[0] == "ClaimsAgent"
+        assert args[1] == "What is the denial rate?"
+        assert args[3] == 30  # claims_agent.yaml cache_ttl_minutes

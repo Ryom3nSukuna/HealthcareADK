@@ -51,7 +51,7 @@ All real logic lives in text files that Claude controls:
 | PreToolUse | `Read` | `guard_file_read.py` | Block reads of `.env`, credential files |
 | PreToolUse | `mcp__file__read_file` | `guard_file_read.py` | Block reads of `.env`, credential files (MCP path) |
 | PreToolUse | `mcp__sqlserver__execute_query` | `guard_query.py` | Block DML/DDL on `dw.*`, DELETE without WHERE |
-| PreToolUse | `mcp__file__write_file` | `guard_file_write.py` | Block path traversal, credential file writes |
+| PreToolUse | `mcp__file__write_file` | `guard_file_write.py` | Block path traversal, credential file writes, and writes outside `powerbi/tmdl/`/`sql/` |
 | PostToolUse | `mcp__shell__run_python_script` | `on_data_drop.py` | `generate_all.py` → auto-run ETL |
 | PostToolUse | `mcp__shell__run_ssis_package` | `on_ssis_complete.py` | Query `dw.ETLLog` after SSIS run |
 | PostToolUse | `mcp__shell__run_pbi_tools` | `on_pbi_deploy.py` | Surface last 20 lines of pbi-tools output |
@@ -73,6 +73,21 @@ Export Power BI data model → `powerbi/tmdl/` → Claude edits `.tmdl` files �
 | FinancialAgent | Revenue, costs, KPIs | financials schema only |
 | ReportingAgent | Power BI refresh, report generation | Read-only DW views |
 | ProviderAgent | Provider & facility data | providers, facilities schemas |
+
+Each domain agent connects to SQL Server as its own login (`agent_claims`, `agent_etl`, etc. — `db_login` in `agents/config/*.yaml`), not a shared trusted connection, so the schema-level GRANT/DENY rules in `sql/10_agent_permissions.sql` are enforced by SQL Server itself, not just by which tools an agent's config exposes.
+
+---
+
+## Smart Caching (Phase 7)
+
+Two layers, both checked in `agents/orchestrator.py:_dispatch()`:
+
+| Layer | What | Where | Coverage |
+| --- | --- | --- | --- |
+| 1 — Prompt caching | `cache_control: ephemeral` on each agent's system prompt | `agents/_base.py` | Only ClinicalAgent + ReportingAgent cross the real cacheable-prefix minimum (~1300–1400 tokens) — see `docs/phase7_design.md` |
+| 2 — Response cache | `dw.QueryCache`, keyed by `SHA256(agent_name + query)`, per-agent TTL | `agents/cache.py` | All 7 agents — checked before the budget check, so a hit costs 0 tokens |
+
+ETLAgent dispatch invalidates the `ETLAgent` + `ClinicalAgent` cache entries so stale pre-load answers aren't served after a fresh ETL run. Cache reads/writes/invalidation are centralized through `agent_orchestrator`'s own SQL login (`dw.QueryCache` grants live in `sql/12_query_cache.sql`).
 
 ---
 
@@ -101,12 +116,13 @@ HealthcareADK/
 ├── CLAUDE.md                  ← You are here
 ├── README.md                  ← Project overview
 ├── .env                       ← Local secrets (gitignored — never committed)
-├── .gitignore                 ← Ignores .env, landing_zone/, __pycache__/, schema_kb.json
+├── .gitignore                 ← Ignores .env, landing_zone/, __pycache__/, schema_kb.json, .claude/settings.local.json, ssis/**/.vs|obj|bin
 ├── .mcp.json                  ← MCP server registry
 ├── docs/
 │   ├── plan.md                ← Detailed phase plan
 │   ├── phase5_design.md       ← Phase 5 architecture (agents, TMDL, MCP)
 │   ├── phase6_design.md       ← Phase 6 architecture (multi-agent, orchestrator, budget tracker)
+│   ├── phase7_design.md       ← Phase 7 architecture (prompt caching, response cache, chat frontend)
 │   └── schema_kb.json         ← RAG knowledge base (tables, columns, SPs) — built by scripts/build_schema_kb.py
 ├── landing_zone/              ← Raw data drop zone
 │   ├── claims/
@@ -124,14 +140,14 @@ HealthcareADK/
 │   ├── generate_all.py        ← Synthetic data generation
 │   └── hooks/                 ← Claude hook scripts
 │       ├── guard_file_read.py ← Block reads of .env / credential files (Read + mcp__file__read_file)
-│       ├── guard_file_write.py← Block writes to credential files / path traversal
+│       ├── guard_file_write.py← Block writes to credential files / path traversal / outside powerbi/tmdl//sql
 │       ├── guard_query.py     ← Block DML/DDL on dw.*, DELETE without WHERE
 │       ├── on_data_drop.py    ← Auto-run ETL after generate_all.py
 │       ├── on_ssis_complete.py← Query dw.ETLLog after SSIS run
 │       └── on_pbi_deploy.py   ← Surface pbi-tools output
-├── sql/                       ← DDL, stored procedures, views (00–11)
-├── tests/                     ← Phase 6 pytest suites
-│   ├── test_phase6.py         ← Unit tests: routing, multi-hop, budget, tool isolation (no DB needed)
+├── sql/                       ← DDL, stored procedures, views (00–12)
+├── tests/                     ← Phase 6/7 pytest suites
+│   ├── test_phase6.py         ← Unit tests: routing, multi-hop, budget, tool isolation, response cache (no DB needed)
 │   └── test_permissions.py    ← Integration tests: SQL Server schema permissions per agent login
 │                                 Skipped unless HEALTHCAREADK_TEST_PERMISSIONS=1
 ├── ssis/                      ← SSIS package design guides
@@ -150,6 +166,7 @@ HealthcareADK/
 │   ├── etl_agent.py           ← ETLAgent
 │   ├── provider_agent.py      ← ProviderAgent
 │   ├── budget_tracker.py      ← Token usage logger → dw.AgentUsageLog
+│   ├── cache.py               ← Layer 2 response cache (dw.QueryCache) — cache_get/cache_set/cache_invalidate
 │   └── skills/                ← Skill specs: claims-summary, financial-yoy, abnormal-labs
 ├── mcp/
 │   ├── sqlserver/             ← mcp-sqlserver (FastMCP, 9 tools) ✅ Live

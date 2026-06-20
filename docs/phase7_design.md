@@ -93,6 +93,10 @@ import hashlib
 key = hashlib.sha256(f"{agent_name}::{query.strip().lower()}".encode()).hexdigest()
 ```
 
+**Known limitation — exact-match only, not semantic.** This is a literal SHA-256 of the normalized text, not a meaning-based comparison. "Show me total payments made in ohio" and "Show me total payments made in OH" produce **different** cache keys and two separate `dw.QueryCache` rows, even though a person would call them the same question — confirmed live 2026-06-20 (both queries created distinct entries, each correctly cached on its own subsequent repeat). Any wording difference — synonyms, abbreviations, rephrasing, extra punctuation — is a cache miss.
+
+This is an accepted tradeoff, not a bug to fix: exact-match caching is simple and never risks serving a wrong answer for a question that merely *resembles* a cached one. Closing this gap properly would mean semantic caching (embed each query, similarity-search on lookup, tune a similarity threshold) — a materially bigger feature with real false-positive risk, and out of scope for what Phase 7 built.
+
 ### TTL Per Agent
 
 Configured in each `agents/config/*.yaml` as `cache_ttl_minutes` (read by the orchestrator via `config.get("cache_ttl_minutes", 30)`):

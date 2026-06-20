@@ -212,6 +212,7 @@ Two test suites — see [docs/phase6_design.md § Testing](phase6_design.md) for
 - [x] Cache invalidation — ETLAgent dispatch flushes `ETLAgent` + `ClinicalAgent` cache entries (implemented in `orchestrator.py`, not `etl_agent.py`, to keep cache ownership/DB grants centralized to `agent_orchestrator`)
 - [x] 2 new unit tests (`TestResponseCache`) + autouse fixture so the other 9 tests don't hit real DB through the new cache calls — 11/11 passing
 - [x] Live-verified: identical query run twice → second call returned byte-identical output with `AgentUsageLog` showing only 1 row for the session (0 tokens on the hit); `ExpiresAt` matched `CreatedAt + 30 min` exactly; ETLAgent dispatch confirmed to purge ClinicalAgent's cache row
+- **Known limitation (by design, not a bug):** cache key is exact-text-match, not semantic — "total payments in ohio" vs "total payments in OH" hash differently and create separate cache entries. Confirmed live 2026-06-20. Documented in [phase7_design.md § Cache Key](phase7_design.md#cache-key-agentscachepy); decided to leave as-is rather than add semantic (embedding-based) caching, which would bring real false-positive risk for a materially bigger feature.
 
 #### 3 — Chat Frontend (FastAPI + UI) ✅
 

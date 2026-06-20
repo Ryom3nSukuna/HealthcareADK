@@ -10,6 +10,10 @@ from pathlib import Path
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _ALLOWED_EXTENSIONS = {".sql", ".tmdl", ".csv", ".json", ".md", ".py"}
 _BLOCKED_NAMES = {"credentials.json", "secrets.json", ".env", "id_rsa", "id_ed25519", ".mcp.json"}
+# ReportingAgent's system prompt claims write access is limited to these directories
+# (powerbi/tmdl/ for the data model, sql/ for SP reference) — enforce it in code too,
+# since the prompt alone doesn't stop a write_file call (e.g. via prompt injection).
+_ALLOWED_WRITE_DIRS = ("powerbi/tmdl/", "sql/")
 
 
 def _safe_path(relative_path: str) -> Path:
@@ -26,6 +30,9 @@ def _check_write(path: Path) -> str | None:
         return f"Writing credential file blocked: {path.name}"
     if path.suffix.lower() not in _ALLOWED_EXTENSIONS:
         return f"Extension not permitted: {path.suffix}. Allowed: {sorted(_ALLOWED_EXTENSIONS)}"
+    rel = path.relative_to(_PROJECT_ROOT).as_posix()
+    if not any(rel.startswith(d) for d in _ALLOWED_WRITE_DIRS):
+        return f"Write blocked: '{rel}' is outside the allowed directories {_ALLOWED_WRITE_DIRS}"
     return None
 
 

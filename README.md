@@ -50,7 +50,7 @@ See [CLAUDE.md](CLAUDE.md) for full agent roles, guardrails, and behavior rules.
 
 ## Project Status
 
-Phases 1–6 complete. Phase 7 (Smart Caching + Chat Frontend) in progress — both caching layers are live; the chat frontend is not yet built. See [docs/plan.md](docs/plan.md) for the detailed phase breakdown.
+All 7 phases complete. See [docs/plan.md](docs/plan.md) for the detailed phase breakdown.
 
 ---
 
@@ -155,6 +155,14 @@ python scripts/generate_all.py   # populates landing_zone/
 
 Then run the SSIS packages (see `ssis/SSIS_Design_Guide.md`) or call `EXEC dw.usp_ETL_RunAll` in SSMS after loading staging manually.
 
+### 6. Run the chat UI (optional)
+
+```powershell
+uvicorn api.main:app --reload --port 8000
+```
+
+Then open `frontend/index.html` directly in a browser (no build step — `file://` works, CORS allows it). Type a question; the OrchestratorAgent routes it to the right domain agent(s) and the response renders as markdown.
+
 ---
 
 ## Testing
@@ -191,4 +199,5 @@ Each test class maps to one agent login (`agent_claims`, `agent_clinical`, etc.)
 | AI | Claude (Anthropic) |
 | Agent Framework | Claude Agent SDK + MCP |
 | Caching | Anthropic prompt caching (`cache_control`) + SQL Server response cache (`dw.QueryCache`) |
+| Chat API / Frontend | FastAPI + vanilla HTML/JS (marked.js + DOMPurify) |
 | Dev Environment | VS Code + Claude Code |

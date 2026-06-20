@@ -213,10 +213,14 @@ Two test suites — see [docs/phase6_design.md § Testing](phase6_design.md) for
 - [x] 2 new unit tests (`TestResponseCache`) + autouse fixture so the other 9 tests don't hit real DB through the new cache calls — 11/11 passing
 - [x] Live-verified: identical query run twice → second call returned byte-identical output with `AgentUsageLog` showing only 1 row for the session (0 tokens on the hit); `ExpiresAt` matched `CreatedAt + 30 min` exactly; ETLAgent dispatch confirmed to purge ClinicalAgent's cache row
 
-#### 3 — Chat Frontend (FastAPI + UI)
+#### 3 — Chat Frontend (FastAPI + UI) ✅
 
-- [ ] `api/main.py` — FastAPI app with `POST /chat` endpoint calling `orchestrator.run()`
-- [ ] `api/models.py` — request/response Pydantic models
-- [ ] `frontend/` — simple chat UI (HTML/JS or React) that POSTs to `/chat` and renders markdown responses
-- [ ] Session ID passed through from the UI so budget tracking works per user session
-- [ ] CORS configured for local dev
+- [x] `agents/orchestrator.py` — added `run_with_meta()` returning `(text, agents, session_id)`; `run()` kept unchanged as a thin wrapper so the CLI and existing tests are unaffected
+- [x] `api/main.py` — FastAPI app with `POST /chat` (sync endpoint, calls `run_with_meta()`) + `GET /health`
+- [x] `api/models.py` — `ChatRequest` / `ChatResponse` Pydantic models
+- [x] `frontend/` — HTML/JS chat UI (`index.html`, `app.js`, `style.css`) that POSTs to `/chat` and renders markdown via marked.js, sanitized with DOMPurify before `innerHTML` insertion
+- [x] Session ID generated server-side on first message, returned to the client, persisted in `localStorage`, and passed back on every subsequent turn — budget tracking and Layer 2 caching stay scoped per session
+- [x] CORS configured (`allow_origins=["*"]`, local dev only)
+- [x] `fastapi` + `uvicorn` added to `requirements.txt`
+- [x] Live-tested: `/chat`, CORS preflight, session continuity, and cache hits all verified via curl; real browser session tested by the user, who caught a routing quality bug (see below) — fixed and re-verified
+- **Bug found + fixed during live testing:** `orchestrator.yaml`'s routing prompt was too eager to multi-hop — a single-domain question ("who was prescribed Amoxicillin and who paid for it") was dispatched to both ClinicalAgent and ClaimsAgent even though `rpt.vw_Prescriptions` already carries payer/cost columns, producing two overlapping tables concatenated into one oversized response. Fixed by tightening the routing prompt to default to single-agent and reserve multi-hop for requests needing genuinely separate systems. Verified: the overlapping case now routes to `["ClinicalAgent"]` alone; the doc's own multi-hop example (denial rate + dashboard refresh) still correctly routes to `["ClaimsAgent", "ReportingAgent"]`. See [phase7_design.md § Chat Frontend](phase7_design.md#chat-frontend) for detail.

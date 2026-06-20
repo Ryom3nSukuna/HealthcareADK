@@ -160,39 +160,54 @@ Layer 2 is the layer that benefits all 7 agents uniformly — it's the higher-pr
 
 ## Chat Frontend
 
+**Status:** ✅ Implemented and live-tested 2026-06-20.
+
 ### API Layer (`api/`)
 
-**FastAPI** wraps `orchestrator.run()` with a single endpoint:
+**FastAPI** wraps `agents.orchestrator.run_with_meta()` (not `run()`) with a single endpoint, since the chat API needs the agent list and the resolved session_id, not just the response text. `run()` is kept as a thin wrapper around `run_with_meta()` for the CLI and existing tests — its signature didn't change.
 
 ```
 POST /chat
-Body: {"message": "...", "session_id": "..."}
-Response: {"response": "...", "session_id": "...", "agent": "..."}
+Body: {"message": "...", "session_id": "..." | null}
+Response: {"response": "...", "session_id": "...", "agents": ["..."]}
 ```
 
-- `session_id` is generated client-side on first message and passed back on every subsequent turn — this keeps budget tracking per user session working correctly
-- Responses are markdown; the frontend renders them
+- `session_id` is `null` on the first message; the server generates one and returns it. The client stores it (`localStorage`) and passes it back on every subsequent turn — this keeps budget tracking and Layer 2 caching scoped per user session.
+- `/chat` is a **sync** endpoint (`def chat(...)`, not `async def`) so FastAPI runs it in its worker thread pool — `run_with_meta()` makes blocking Anthropic API and pyodbc calls and must not run on the event loop.
+- CORS is wide open (`allow_origins=["*"]`) — fine for local dev where the frontend is opened via `file://` or a different local port, but should be tightened before any real deployment.
 
 ### Directory Structure (additions)
 
 ```
 api/
-├── main.py          ← FastAPI app, POST /chat, CORS
+├── main.py          ← FastAPI app, POST /chat, CORS, GET /health
 └── models.py        ← ChatRequest / ChatResponse Pydantic models
 
 frontend/
-├── index.html       ← Chat UI shell
-├── app.js           ← Fetch /chat, render markdown (marked.js)
-└── style.css        ← Minimal styling
+├── index.html       ← Chat UI shell (loads marked.js + DOMPurify from CDN)
+├── app.js           ← Fetch /chat, render markdown, session persistence via localStorage
+└── style.css        ← Minimal dark-theme chat styling
 ```
+
+### Security note: markdown rendering
+
+`marked.js` does not sanitize its HTML output, and chat responses are inserted via `innerHTML`. Since a response is ultimately LLM-generated text that could echo back unusual content from the database, `app.js` runs every rendered response through **DOMPurify** before insertion (`DOMPurify.sanitize(marked.parse(text))`) to rule out script injection via a malicious or unexpected markdown/HTML payload.
 
 ### Running Locally
 
 ```powershell
 pip install fastapi uvicorn
 uvicorn api.main:app --reload --port 8000
-# Open frontend/index.html in browser (or serve via uvicorn static files)
+# Open frontend/index.html directly in a browser (file:// works — CORS allows it)
 ```
+
+### Bug found during live testing: redundant multi-hop dispatch
+
+Testing the real chat UI surfaced a routing quality issue, not a frontend bug: `orchestrator.yaml`'s system prompt said "When the request spans multiple domains, list all relevant agents in priority order," which made the routing model over-eager. For *"How many patients were prescribed Amoxicillin in 2025 and who paid for them?"*, it dispatched **both** ClinicalAgent and ClaimsAgent — but `rpt.vw_Prescriptions` already joins in `PayerName`, `PayerType`, `CostToPayer`, `CostToPatient` (see `sql/06_rpt_views.sql`), so ClinicalAgent alone could fully answer the question. The result was two largely-overlapping tables concatenated into one oversized response.
+
+**Fix:** `agents/config/orchestrator.yaml` now explicitly defaults to single-agent routing, calls out that ClinicalAgent's prescriptions/labs views already carry payer/cost columns, and instructs the router not to add ClaimsAgent just because a question mentions "paid" or "payer." Multi-hop is reserved for requests that genuinely need separate systems (the doc's own example — denial rate query + Power BI refresh — still correctly routes to `["ClaimsAgent", "ReportingAgent"]`, verified live after the prompt change).
+
+This is a useful reminder for future routing-prompt edits: multi-hop responses are concatenated verbatim with no de-duplication, so an overly permissive router silently produces redundant, oversized answers rather than an obvious error.
 
 ---
 

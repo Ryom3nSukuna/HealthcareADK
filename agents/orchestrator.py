@@ -105,20 +105,23 @@ def _dispatch(agent_name: str, user_request: str, session_id: str, client: Anthr
     return result
 
 
-def run(user_request: str, session_id: str | None = None) -> str:
+def run_with_meta(user_request: str, session_id: str | None = None) -> tuple[str, list[str], str]:
+    """Like run(), but also returns the agent names that handled the request and the
+    session_id actually used (generated fresh if none was passed in). Used by the
+    chat API, which needs to hand the session_id back to the client for the next turn."""
     session_id = session_id or str(uuid.uuid4())
     client = Anthropic()  # reads ANTHROPIC_API_KEY from environment
 
     routing = _route(user_request, client)
 
     if "escalation" in routing:
-        return f"[OrchestratorAgent] {routing['escalation']}"
+        return f"[OrchestratorAgent] {routing['escalation']}", [], session_id
 
     agents = routing.get("agents", [])
     rationale = routing.get("rationale", "")
 
     if not agents:
-        return "[OrchestratorAgent] Could not determine which agent should handle this request."
+        return "[OrchestratorAgent] Could not determine which agent should handle this request.", [], session_id
 
     print(
         f"[OrchestratorAgent] session={session_id} → {', '.join(agents)} | {rationale}",
@@ -131,11 +134,16 @@ def run(user_request: str, session_id: str | None = None) -> str:
         results.append((agent_name, result))
 
     if len(results) == 1:
-        return results[0][1]
+        return results[0][1], agents, session_id
 
     # Multi-hop: combine with section headers
     sections = [f"### {name}\n\n{content}" for name, content in results]
-    return "\n\n---\n\n".join(sections)
+    return "\n\n---\n\n".join(sections), agents, session_id
+
+
+def run(user_request: str, session_id: str | None = None) -> str:
+    text, _, _ = run_with_meta(user_request, session_id)
+    return text
 
 
 def main() -> None:

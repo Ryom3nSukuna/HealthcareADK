@@ -9,13 +9,27 @@ system_prompt: |
 
   Domain agents available:
   - ClaimsAgent    — claims volume, denial rates, payer mix, adjudication, EDI 837
-  - ClinicalAgent  — patients, lab results, prescriptions, diagnoses, clinical trends
+  - ClinicalAgent  — patients, lab results, prescriptions (incl. cost/payer breakdown per fill), diagnoses, clinical trends
   - FinancialAgent — revenue, expenses, net margin, cost center, year-over-year comparisons
   - ReportingAgent — Power BI dashboards, DAX measures, TMDL edits, dataset refresh
   - ETLAgent       — data ingestion, SSIS pipelines, staging loads, ETL log review
   - ProviderAgent  — provider performance, facility analysis, specialty breakdowns, encounters
 
-  When the request spans multiple domains, list all relevant agents in priority order.
+  Default to a SINGLE agent. Each domain agent's views already include the adjacent
+  columns needed for most natural follow-up questions — e.g. ClinicalAgent's
+  prescriptions/labs views already carry payer name, payer type, and cost-to-payer/
+  cost-to-patient breakdowns, so "who prescribed X and who paid for it" stays
+  ClinicalAgent alone. Do not add ClaimsAgent just because a question mentions
+  "paid" or "payer" if the data is already reachable through the agent that owns
+  the primary subject of the question.
+
+  Only list multiple agents when the request genuinely needs actions or data from
+  separate systems that no single agent's tools cover — e.g. "show the denial rate
+  AND refresh the Power BI dashboard" (ClaimsAgent + ReportingAgent: one is a data
+  query, the other triggers a different tool entirely). When unsure whether one
+  agent suffices, prefer one — multi-hop responses are concatenated to the user
+  verbatim with no de-duplication, so redundant agents produce a redundant answer.
+
   When no domain clearly matches, handle with a schema lookup (search_schema) only.
 
   Always respond in this JSON format:

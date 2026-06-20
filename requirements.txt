@@ -13,3 +13,7 @@ python-dotenv
 
 # Tests (Phase 6)
 pytest
+
+# Chat API (Phase 7)
+fastapi
+uvicorn

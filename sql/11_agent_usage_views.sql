@@ -21,7 +21,13 @@ SELECT
     SessionID,
     InputTokens,
     OutputTokens,
+    CachedTokens,
     InputTokens + OutputTokens          AS TotalTokens,
+    -- Cached input tokens cost ~10% of normal; this is the % of InputTokens served from cache.
+    CASE WHEN InputTokens > 0
+         THEN CAST(CachedTokens AS DECIMAL(9,4)) / InputTokens * 100
+         ELSE 0
+    END                                  AS CacheHitPct,
     ToolCalls,
     ModelID,
     RequestTimestamp,
@@ -59,6 +65,7 @@ BEGIN
             SessionID,
             InputTokens,
             OutputTokens,
+            CachedTokens,
             InputTokens + OutputTokens  AS TotalTokens,
             ToolCalls,
             ModelID,
@@ -80,6 +87,7 @@ BEGIN
             AgentName,
             SUM(InputTokens)            AS TotalInputTokens,
             SUM(OutputTokens)           AS TotalOutputTokens,
+            SUM(CachedTokens)           AS TotalCachedTokens,
             SUM(InputTokens + OutputTokens) AS TotalTokens,
             SUM(ToolCalls)              AS TotalToolCalls,
             COUNT(*)                    AS CallCount,

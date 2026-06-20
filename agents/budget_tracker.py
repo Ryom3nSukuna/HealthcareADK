@@ -55,14 +55,15 @@ def record(
     tool_calls: int,
     model: str | None = None,
     notes: str | None = None,
+    cached_tokens: int = 0,
 ) -> None:
     """Insert one usage row for a completed agent call."""
     with _get_conn() as conn:
         conn.execute(
             """
             INSERT INTO dw.AgentUsageLog
-                (AgentName, SessionID, InputTokens, OutputTokens, ToolCalls, ModelID, Notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+                (AgentName, SessionID, InputTokens, OutputTokens, ToolCalls, ModelID, Notes, CachedTokens)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             agent_name,
             session_id,
@@ -71,6 +72,7 @@ def record(
             tool_calls,
             model,
             notes,
+            cached_tokens,
         )
         conn.commit()
 

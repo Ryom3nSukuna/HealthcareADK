@@ -33,9 +33,11 @@ Return to user
 
 ## Layer 1 — Anthropic Prompt Caching
 
-**What it does:** Marks the system prompt block with `cache_control: {"type": "ephemeral"}`. Anthropic caches the compiled prompt for 5 minutes. On a cache hit, input tokens for the system prompt cost ~10% of normal.
+**Status:** ✅ Implemented in `agents/_base.py`, live-tested 2026-06-20 — **only benefits 2 of 7 agents** (see measured results below). Shipped anyway: it's a no-op (not a regression) for the other 5, costs nothing extra, and starts paying off automatically if their tool lists grow.
 
-**Where:** `agents/_base.py` — `client.messages.create()` call. Change the `system` parameter from a plain string to a list with a cache_control block:
+**What it does:** Marks the system prompt block with `cache_control: {"type": "ephemeral"}`. Anthropic caches the *cumulative prefix* (tool definitions + system prompt) for 5 minutes. On a cache hit, those tokens cost ~10% of normal.
+
+**Where:** `agents/_base.py` — `client.messages.create()` call. The `system` parameter is a list with a cache_control block instead of a plain string:
 
 ```python
 system=[{
@@ -45,9 +47,21 @@ system=[{
 }]
 ```
 
-**Savings:** System prompts are 300–800 tokens each. Every agent call within a 5-minute window pays ~10% on those tokens instead of 100%.
+**Measured results (not the original estimate):** The original draft of this doc assumed all system prompts (300–800 tokens) would benefit, citing Anthropic's commonly-quoted 1024-token minimum. Live testing against the real `claude-sonnet-4-6` account showed the actual cacheable-prefix minimum for this account sits somewhere between ~1292 and ~1398 tokens — higher than the commonly-cited figure, and not explained by total `input_tokens` alone (confirmed via the `count_tokens` endpoint and repeated identical calls, ruling out flakiness):
 
-**Observability:** `response.usage` gains a `cache_read_input_tokens` field when the cache is hit. Log this to `dw.AgentUsageLog` via a new `CachedTokens INT DEFAULT 0` column (`sql/09_agent_usage_log.sql` update).
+| Agent | System+tools tokens | Caches? |
+| --- | --- | --- |
+| ClaimsAgent | 1,292 | ❌ No |
+| FinancialAgent | 1,233 | ❌ No |
+| ProviderAgent | 1,227 | ❌ No |
+| ETLAgent | 1,236 | ❌ No |
+| ClinicalAgent | 1,398 | ✅ Yes — `cache_read_input_tokens=1072` on repeat |
+| ReportingAgent | 1,515 | ✅ Yes — `cache_read_input_tokens=1189` on repeat |
+| OrchestratorAgent (routing call) | ~331, no tools sent | ❌ No |
+
+So 4 of 6 domain agents plus the orchestrator's routing call get **zero** benefit from Layer 1 as currently scoped — their combined system+tools content is real but just under whatever this account's true cacheable-prefix floor is. Padding their prompts purely to cross that floor would be counterproductive (adds real tokens to every call to maybe save tokens on a cache hit). The code is left in place because it's harmless for the agents below threshold and immediately effective for the two above it — and because Layer 2 (below) provides universal savings regardless of size.
+
+**Observability:** `response.usage.cache_read_input_tokens` is logged to `dw.AgentUsageLog` via the new `CachedTokens INT DEFAULT 0` column (`sql/09_agent_usage_log.sql`), surfaced in `rpt.vw_AgentUsage` as `CachedTokens` + a computed `CacheHitPct`, and in `dw.usp_GetAgentUsage`'s rollup as `TotalCachedTokens`.
 
 ---
 
@@ -116,11 +130,15 @@ cache_invalidate(["ETLAgent", "ClinicalAgent"])
 
 ## Layer 1 + Layer 2 Combined Savings Estimate
 
-| Scenario | Without caching | With Layer 1 only | With Layer 1 + Layer 2 |
-| --- | --- | --- | --- |
-| Same query repeated in 5 min | 100% tokens | ~20% tokens | 0 tokens |
-| Same query repeated in 30 min | 100% tokens | 100% tokens | 0 tokens (within TTL) |
-| New query, warm cache | 100% tokens | ~20% tokens (system prompt) | ~20% tokens |
+Layer 1's effect is agent-dependent (see measured results above) — ClinicalAgent/ReportingAgent get the discount shown below; ClaimsAgent/FinancialAgent/ProviderAgent/ETLAgent currently get none from Layer 1 and rely entirely on Layer 2.
+
+| Scenario | Without caching | With Layer 1 only (Clinical/Reporting) | With Layer 1 only (other 4 agents) | With Layer 1 + Layer 2 |
+| --- | --- | --- | --- | --- |
+| Same query repeated in 5 min | 100% tokens | ~20% tokens | 100% tokens | 0 tokens |
+| Same query repeated in 30 min | 100% tokens | 100% tokens | 100% tokens | 0 tokens (within TTL) |
+| New query, warm cache | 100% tokens | ~20% tokens (system+tools) | 100% tokens | ~20% / 100% (agent-dependent) |
+
+Layer 2 is the layer that benefits all 7 agents uniformly — it's the higher-priority piece for actual cost reduction here.
 
 ---
 

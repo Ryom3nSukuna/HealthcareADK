@@ -195,11 +195,12 @@ Two test suites — see [docs/phase6_design.md § Testing](phase6_design.md) for
 
 ### Tasks
 
-#### 1 — Layer 1: Anthropic Prompt Caching
+#### 1 — Layer 1: Anthropic Prompt Caching ✅
 
-- [ ] Add `cache_control: {"type": "ephemeral"}` to system prompt block in `agents/_base.py`
-- [ ] Verify cache hit/miss in `response.usage` (cached_input_tokens field)
-- [ ] Log cache hits to `dw.AgentUsageLog` (add `CachedTokens` column to `09_agent_usage_log.sql`)
+- [x] Add `cache_control: {"type": "ephemeral"}` to system prompt block in `agents/_base.py`
+- [x] Verify cache hit/miss in `response.usage` (`cache_read_input_tokens`, `cache_creation_input_tokens`) — live-tested all 7 agents
+- [x] Log cache hits to `dw.AgentUsageLog` (`CachedTokens` column added to `09_agent_usage_log.sql`; surfaced in `11_agent_usage_views.sql`)
+- **Finding:** only ClinicalAgent and ReportingAgent actually cross this account's real cacheable-prefix minimum (~1300–1400 tokens, higher than the commonly-cited 1024). ClaimsAgent/FinancialAgent/ProviderAgent/ETLAgent/orchestrator routing get no benefit from Layer 1 — see [phase7_design.md § Layer 1](phase7_design.md#layer-1--anthropic-prompt-caching) for the measured breakdown. Code left in place (harmless no-op below threshold); Layer 2 is the layer that matters for universal savings.
 
 #### 2 — Layer 2: Response Cache (SQL Server)
 

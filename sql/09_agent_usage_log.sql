@@ -18,6 +18,7 @@ BEGIN
         SessionID         VARCHAR(100)       NOT NULL,
         InputTokens       INT                NOT NULL  DEFAULT 0,
         OutputTokens      INT                NOT NULL  DEFAULT 0,
+        CachedTokens      INT                NOT NULL  DEFAULT 0,
         ToolCalls         INT                NOT NULL  DEFAULT 0,
         ModelID           VARCHAR(100)           NULL,
         RequestTimestamp  DATETIME2          NOT NULL  DEFAULT SYSDATETIME(),
@@ -41,5 +42,21 @@ END
 ELSE
 BEGIN
     PRINT 'dw.AgentUsageLog already exists — skipped.';
+END
+GO
+
+-- Phase 7: CachedTokens tracks Anthropic prompt-cache hits (response.usage.cache_read_input_tokens).
+-- Added separately so this script stays idempotent against the Phase 6 deployment.
+IF NOT EXISTS (
+    SELECT 1 FROM sys.columns
+    WHERE object_id = OBJECT_ID('dw.AgentUsageLog') AND name = 'CachedTokens'
+)
+BEGIN
+    ALTER TABLE dw.AgentUsageLog ADD CachedTokens INT NOT NULL DEFAULT 0;
+    PRINT 'dw.AgentUsageLog.CachedTokens added.';
+END
+ELSE
+BEGIN
+    PRINT 'dw.AgentUsageLog.CachedTokens already exists — skipped.';
 END
 GO

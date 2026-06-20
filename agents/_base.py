@@ -23,10 +23,11 @@ def _record_usage(
     input_tokens: int,
     output_tokens: int,
     tool_calls: int,
+    cached_tokens: int = 0,
 ) -> None:
     try:
         from agents.budget_tracker import record
-        record(agent_name, session_id, input_tokens, output_tokens, tool_calls)
+        record(agent_name, session_id, input_tokens, output_tokens, tool_calls, cached_tokens=cached_tokens)
     except ImportError:
         pass  # budget_tracker not yet built
 
@@ -49,22 +50,30 @@ def run_agent(
     messages = [{"role": "user", "content": user_request}]
     total_input = 0
     total_output = 0
+    total_cached = 0
     tool_call_count = 0
 
     for _ in range(MAX_ITERATIONS):
         response = client.messages.create(
             model=config["model"],
             max_tokens=8192,
-            system=config["system_prompt"],
+            # cache_control caches the compiled system prompt for 5 min; repeat calls
+            # within that window pay ~10% on these input tokens instead of 100%.
+            system=[{
+                "type": "text",
+                "text": config["system_prompt"],
+                "cache_control": {"type": "ephemeral"},
+            }],
             tools=tool_defs,
             messages=messages,
         )
         total_input += response.usage.input_tokens
         total_output += response.usage.output_tokens
+        total_cached += response.usage.cache_read_input_tokens
 
         if response.stop_reason == "end_turn":
             text = next((b.text for b in response.content if b.type == "text"), "")
-            _record_usage(config["name"], session_id, total_input, total_output, tool_call_count)
+            _record_usage(config["name"], session_id, total_input, total_output, tool_call_count, total_cached)
             return text
 
         if response.stop_reason == "tool_use":
@@ -93,8 +102,8 @@ def run_agent(
             messages.append({"role": "user", "content": tool_results})
 
         else:
-            _record_usage(config["name"], session_id, total_input, total_output, tool_call_count)
+            _record_usage(config["name"], session_id, total_input, total_output, tool_call_count, total_cached)
             return f"[{config['name']}] Unexpected stop reason: {response.stop_reason}"
 
-    _record_usage(config["name"], session_id, total_input, total_output, tool_call_count)
+    _record_usage(config["name"], session_id, total_input, total_output, tool_call_count, total_cached)
     return f"[{config['name']}] Max iterations ({MAX_ITERATIONS}) reached without a final answer."

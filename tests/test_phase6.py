@@ -26,12 +26,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 # Shared helpers
 # ---------------------------------------------------------------------------
 
-def _text_response(text: str, input_tokens: int = 200, output_tokens: int = 100):
+def _text_response(text: str, input_tokens: int = 200, output_tokens: int = 100, cached_tokens: int = 0):
     """Minimal mock of an Anthropic end_turn message with one text block."""
     msg = MagicMock()
     msg.stop_reason = "end_turn"
     msg.usage.input_tokens = input_tokens
     msg.usage.output_tokens = output_tokens
+    msg.usage.cache_read_input_tokens = cached_tokens
     block = MagicMock()
     block.type = "text"
     block.text = text
@@ -51,6 +52,7 @@ def _tool_use_response(tool_name: str, tool_input: dict, tool_id: str = "tu_001"
     msg.stop_reason = "tool_use"
     msg.usage.input_tokens = 150
     msg.usage.output_tokens = 60
+    msg.usage.cache_read_input_tokens = 0
 
     block = MagicMock()
     block.type = "tool_use"

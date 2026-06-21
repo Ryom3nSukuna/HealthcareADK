@@ -17,3 +17,6 @@ pytest
 # Chat API (Phase 7)
 fastapi
 uvicorn
+
+# Semantic caching (Phase 8)
+sentence-transformers

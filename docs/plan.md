@@ -225,3 +225,30 @@ Two test suites — see [docs/phase6_design.md § Testing](phase6_design.md) for
 - [x] `fastapi` + `uvicorn` added to `requirements.txt`
 - [x] Live-tested: `/chat`, CORS preflight, session continuity, and cache hits all verified via curl; real browser session tested by the user, who caught a routing quality bug (see below) — fixed and re-verified
 - **Bug found + fixed during live testing:** `orchestrator.yaml`'s routing prompt was too eager to multi-hop — a single-domain question ("who was prescribed Amoxicillin and who paid for it") was dispatched to both ClinicalAgent and ClaimsAgent even though `rpt.vw_Prescriptions` already carries payer/cost columns, producing two overlapping tables concatenated into one oversized response. Fixed by tightening the routing prompt to default to single-agent and reserve multi-hop for requests needing genuinely separate systems. Verified: the overlapping case now routes to `["ClinicalAgent"]` alone; the doc's own multi-hop example (denial rate + dashboard refresh) still correctly routes to `["ClaimsAgent", "ReportingAgent"]`. See [phase7_design.md § Chat Frontend](phase7_design.md#chat-frontend) for detail.
+
+---
+
+## Phase 8 — Semantic Query Cache (Layer 3)
+
+**Goal:** Catch paraphrased repeat queries (synonyms, abbreviations, rewording) that Layer 2's exact-text-match cache misses — e.g. "total payments in ohio" vs "...in OH" — without ever risking a wrong answer served from a merely-similar cached response.
+
+**Design:** See [docs/phase8_design.md](phase8_design.md). Full plan recorded at decision time in this session; key points below.
+
+**Decisions confirmed before implementation:**
+
+- Embeddings: local model (`sentence-transformers`, `all-MiniLM-L6-v2`) — no new vendor/API key, consistent with this project depending only on Anthropic for AI.
+- Scope: all 6 domain agents (no carve-out for ClinicalAgent).
+- **Zero-false-positive design principle:** embedding similarity only ever produces a *candidate*; a candidate is never served without a dedicated, strict Claude Haiku verification call (`verify_equivalence()`) that defaults to "NO" on any doubt about scope, filters, time period, or interpretation. No similarity-only shortcut exists, even at very high scores.
+
+### Tasks
+
+- [ ] `requirements.txt` — add `sentence-transformers`
+- [ ] `agents/embeddings.py` — lazy-loaded local model singleton, `embed(text) -> np.ndarray` (unit-normalized)
+- [ ] `sql/13_semantic_cache.sql` — idempotent `ALTER TABLE dw.QueryCache ADD Embedding VARBINARY(MAX) NULL`
+- [ ] `agents/cache.py` — `cache_set()` also stores the query's embedding (fails soft on write); new `cache_get_semantic(agent_name, query, similarity_floor=0.85)` (brute-force cosine scan over non-expired, non-null-embedding rows for that agent — table is TTL-bounded, no vector index needed); new `verify_equivalence(client, new_query, candidate_query)` (Haiku call, fail-closed parsing); `HEALTHCAREADK_SEMANTIC_CACHE_ENABLED` env-var kill switch (default `"1"`)
+- [ ] `agents/orchestrator.py:_dispatch()` — insert the semantic-candidate + verify step between the existing exact-match check and the budget check; on a verified hit, append a transparency note ("Answered using a cached response to a similar question: ...") to the returned text
+- [ ] `tests/test_phase6.py` — extend the `_no_real_cache` autouse fixture to also patch `cache_get_semantic`/`verify_equivalence`; new `TestSemanticCache` class (verified-hit, rejected-candidate, no-candidate, and pure cosine-similarity-math cases)
+- [ ] Deploy `sql/13_semantic_cache.sql`; live-test: ohio/OH semantic hit (zero new domain-agent tokens), a deliberate near-miss correctly rejected (e.g. "NOT in Ohio" or a different state), and the kill switch disabling Layer 3 while Layer 2 keeps working
+- [ ] Update `docs/phase8_design.md`, `CLAUDE.md` (phase table + short blurb), `README.md` (new dependency, one-time model download note)
+
+**Explicitly deferred:** per-agent opt-out config (not needed — scope is all 6 agents by decision), a real vector index (unnecessary at this scale), logging verification-call token cost as its own `dw.AgentUsageLog` line item.

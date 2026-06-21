@@ -20,6 +20,7 @@ Healthcare: Patients, Providers, Claims, Labs, Prescriptions, Facilities, Payers
 | 5 | Claude AI Layer (RAG, MCP, Skills, Hooks) | ✅ Complete (2026-06-14) |
 | 6 | Multi-Agent Architecture | ✅ Complete (2026-06-15) |
 | 7 | Smart Caching + Chat Frontend | ✅ Complete (2026-06-20) |
+| 8 | Semantic Query Cache (Layer 3) | 🔄 In Progress |
 
 ---
 
@@ -91,6 +92,12 @@ ETLAgent dispatch invalidates the `ETLAgent` + `ClinicalAgent` cache entries so 
 
 ---
 
+## Semantic Caching (Phase 8 — In Progress)
+
+A third cache layer, checked only on a Layer 2 exact-match miss inside `agents/orchestrator.py:_dispatch()`: embed the query locally (`sentence-transformers`, `all-MiniLM-L6-v2`), find the best cosine-similarity candidate in `dw.QueryCache` (`agents/cache.py:cache_get_semantic()`), then require a mandatory Claude Haiku equivalence check (`verify_equivalence()`) before ever serving it — a candidate is never reused on similarity score alone. Fails closed at every stage; see `docs/phase8_design.md` for the full design and `docs/plan.md § Phase 8` for the task checklist.
+
+---
+
 ## Guardrails
 
 ### Access Control
@@ -123,6 +130,7 @@ HealthcareADK/
 │   ├── phase5_design.md       ← Phase 5 architecture (agents, TMDL, MCP)
 │   ├── phase6_design.md       ← Phase 6 architecture (multi-agent, orchestrator, budget tracker)
 │   ├── phase7_design.md       ← Phase 7 architecture (prompt caching, response cache, chat frontend)
+│   ├── phase8_design.md       ← Phase 8 architecture (semantic query cache, Layer 3) — in progress
 │   └── schema_kb.json         ← RAG knowledge base (tables, columns, SPs) — built by scripts/build_schema_kb.py
 ├── landing_zone/              ← Raw data drop zone
 │   ├── claims/
@@ -145,7 +153,7 @@ HealthcareADK/
 │       ├── on_data_drop.py    ← Auto-run ETL after generate_all.py
 │       ├── on_ssis_complete.py← Query dw.ETLLog after SSIS run
 │       └── on_pbi_deploy.py   ← Surface pbi-tools output
-├── sql/                       ← DDL, stored procedures, views (00–12)
+├── sql/                       ← DDL, stored procedures, views (00–13)
 ├── tests/                     ← Phase 6/7 pytest suites
 │   ├── test_phase6.py         ← Unit tests: routing, multi-hop, budget, tool isolation, response cache (no DB needed)
 │   └── test_permissions.py    ← Integration tests: SQL Server schema permissions per agent login
@@ -166,7 +174,8 @@ HealthcareADK/
 │   ├── etl_agent.py           ← ETLAgent
 │   ├── provider_agent.py      ← ProviderAgent
 │   ├── budget_tracker.py      ← Token usage logger → dw.AgentUsageLog
-│   ├── cache.py               ← Layer 2 response cache (dw.QueryCache) — cache_get/cache_set/cache_invalidate
+│   ├── cache.py               ← Layer 2 response cache (dw.QueryCache) — cache_get/cache_set/cache_invalidate; Layer 3 additions in progress (cache_get_semantic/verify_equivalence)
+│   ├── embeddings.py          ← Layer 3: lazy sentence-transformers singleton, embed() — in progress
 │   └── skills/                ← Skill specs: claims-summary, financial-yoy, abnormal-labs
 ├── mcp/
 │   ├── sqlserver/             ← mcp-sqlserver (FastMCP, 9 tools) ✅ Live

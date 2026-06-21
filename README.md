@@ -50,7 +50,7 @@ See [CLAUDE.md](CLAUDE.md) for full agent roles, guardrails, and behavior rules.
 
 ## Project Status
 
-All 7 phases complete. See [docs/plan.md](docs/plan.md) for the detailed phase breakdown.
+Phases 1–7 complete. Phase 8 (Semantic Query Cache, Layer 3) is in progress — see [docs/phase8_design.md](docs/phase8_design.md). See [docs/plan.md](docs/plan.md) for the detailed phase breakdown.
 
 ---
 
@@ -70,6 +70,8 @@ All 7 phases complete. See [docs/plan.md](docs/plan.md) for the detailed phase b
 ```powershell
 pip install -r requirements.txt
 ```
+
+> **Note (Phase 8, in progress):** `requirements.txt` includes `sentence-transformers` for the upcoming semantic query cache. It pulls in `torch`, and the first call to the embedding model (`all-MiniLM-L6-v2`) downloads it (~80MB) to your local Hugging Face cache — needs internet access once.
 
 ### 2. Create a `.env` file
 
@@ -145,6 +147,7 @@ Then apply users, GRANTs, and DENYs in SSMS:
 sql/10_agent_permissions.sql
 sql/11_agent_usage_views.sql
 sql/12_query_cache.sql
+sql/13_semantic_cache.sql   # Phase 8, in progress
 ```
 
 ### 5. Generate synthetic data and run ETL

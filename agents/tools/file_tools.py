@@ -18,7 +18,7 @@ _ALLOWED_WRITE_DIRS = ("powerbi/tmdl/", "sql/")
 
 def _safe_path(relative_path: str) -> Path:
     resolved = (_PROJECT_ROOT / relative_path).resolve()
-    if not str(resolved).startswith(str(_PROJECT_ROOT)):
+    if resolved != _PROJECT_ROOT and _PROJECT_ROOT not in resolved.parents:
         raise ValueError(f"Path traversal blocked: {relative_path!r}")
     return resolved
 

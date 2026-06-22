@@ -24,6 +24,14 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 ALLOWED_EXTENSIONS = {".sql", ".tmdl", ".csv", ".json", ".md", ".py"}
 
+# This server is built for the TMDL/SQL editing workflow (Phase 5 design) — writes are
+# restricted to those directories. Mirrors agents/tools/file_tools.py's _check_write;
+# keep both in sync. Previously this allowlist only existed in the PreToolUse hook
+# (scripts/hooks/guard_file_write.py), so any caller that skipped the Claude Code
+# harness could write a .py file anywhere and then mcp-shell's run_python_script
+# would execute it. The server must enforce this itself, not rely on the harness.
+ALLOWED_WRITE_DIRS = ("powerbi/tmdl/", "sql/")
+
 mcp = FastMCP("mcp-file")
 
 # ------------------------------------------------------------------
@@ -32,8 +40,9 @@ mcp = FastMCP("mcp-file")
 
 def _safe_resolve(relative_path: str) -> Path:
     """Resolve relative_path under PROJECT_ROOT. Raises if traversal escapes root."""
+    root = PROJECT_ROOT.resolve()
     resolved = (PROJECT_ROOT / relative_path).resolve()
-    if not str(resolved).startswith(str(PROJECT_ROOT.resolve())):
+    if resolved != root and root not in resolved.parents:
         raise ValueError(f"Path traversal blocked: {relative_path!r}")
     return resolved
 
@@ -42,6 +51,14 @@ def _check_extension(path: Path) -> None:
     if path.suffix.lower() not in ALLOWED_EXTENSIONS:
         raise ValueError(
             f"Extension {path.suffix!r} not allowed. Permitted: {sorted(ALLOWED_EXTENSIONS)}"
+        )
+
+
+def _check_write_dir(path: Path) -> None:
+    rel = path.relative_to(PROJECT_ROOT.resolve()).as_posix()
+    if not any(rel.startswith(d) for d in ALLOWED_WRITE_DIRS):
+        raise ValueError(
+            f"Write blocked: {rel!r} is outside the allowed directories {ALLOWED_WRITE_DIRS}"
         )
 
 
@@ -82,6 +99,7 @@ def write_file(path: str, content: str) -> str:
     try:
         resolved = _safe_resolve(path)
         _check_extension(resolved)
+        _check_write_dir(resolved)
         resolved.parent.mkdir(parents=True, exist_ok=True)
         resolved.write_text(content, encoding="utf-8")
         return json.dumps({"written": len(content.encode("utf-8"))})
@@ -139,6 +157,7 @@ def append_file(path: str, content: str) -> str:
     try:
         resolved = _safe_resolve(path)
         _check_extension(resolved)
+        _check_write_dir(resolved)
         resolved.parent.mkdir(parents=True, exist_ok=True)
         with resolved.open("a", encoding="utf-8") as f:
             f.write(content)

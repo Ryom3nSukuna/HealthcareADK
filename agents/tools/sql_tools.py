@@ -77,9 +77,30 @@ def _score(words: list[str], text: str) -> int:
 # Tool functions
 # ------------------------------------------------------------------
 
+def _validate_select(sql: str) -> str | None:
+    """Return an error message if sql is not a safe single SELECT statement, else None.
+
+    Mirrors mcp/sqlserver/server.py's _validate_select — keep both in sync. A bare
+    str.startswith("SELECT") check lets a stacked batch like "SELECT 1; EXEC
+    xp_cmdshell '...'" through, since SQL Server executes the whole batch.
+    """
+    no_comments = re.sub(r"--[^\n]*", "", sql)
+    no_comments = re.sub(r"/\*.*?\*/", "", no_comments, flags=re.DOTALL)
+    body = no_comments.strip().rstrip(";").strip()
+
+    if not body.upper().startswith("SELECT"):
+        return "Only SELECT statements are allowed."
+    if ";" in body:
+        return "Stacked/multiple statements are not allowed."
+    if re.search(r"\b(EXEC|EXECUTE|XP_\w+|SP_\w+|OPENROWSET|OPENQUERY)\b", body.upper()):
+        return "Query contains a blocked keyword (EXEC/xp_*/sp_*/OPENROWSET/OPENQUERY)."
+    return None
+
+
 def _execute_query(db_login: str, sql: str) -> str:
-    if not sql.strip().upper().startswith("SELECT"):
-        return json.dumps({"error": "Only SELECT statements are allowed."})
+    error = _validate_select(sql)
+    if error:
+        return json.dumps({"error": error})
     try:
         conn = _get_conn(db_login)
         cursor = conn.cursor()

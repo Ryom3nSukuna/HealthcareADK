@@ -42,8 +42,9 @@ mcp = FastMCP("mcp-shell")
 
 def _safe_resolve(base_dir: Path, relative_path: str) -> Path:
     """Resolve relative_path under base_dir. Raises if traversal escapes base."""
+    base = base_dir.resolve()
     resolved = (base_dir / relative_path).resolve()
-    if not str(resolved).startswith(str(base_dir.resolve())):
+    if resolved != base and base not in resolved.parents:
         raise ValueError(f"Path traversal blocked: {relative_path!r}")
     return resolved
 

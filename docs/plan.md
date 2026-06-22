@@ -252,3 +252,21 @@ Two test suites — see [docs/phase6_design.md § Testing](phase6_design.md) for
 - [ ] Update `docs/phase8_design.md`, `CLAUDE.md` (phase table + short blurb), `README.md` (new dependency, one-time model download note)
 
 **Explicitly deferred:** per-agent opt-out config (not needed — scope is all 6 agents by decision), a real vector index (unnecessary at this scale), logging verification-call token cost as its own `dw.AgentUsageLog` line item.
+
+---
+
+## Phase 9 — Extensibility Playbook (New Domain Walkthrough) 📘 DOCUMENTED (2026-06-22)
+
+**Goal:** Document the repeatable, ordered process for adding a new domain to HealthcareADK end-to-end, using a hypothetical Admissions domain as the worked example. This is a methodology/demo-readiness phase, not a feature build — no Admissions code ships in this phase.
+
+**Design:** See [docs/phase9_design.md](phase9_design.md).
+
+**Key clarification:** of the six stages (raw data → DW tables → ETL → Power BI → Claude agent layer → RAG/permissions/docs wiring), only the agent layer actually involves writing new Claude agent code; the rest is deterministic data engineering. Recommended approach for that one stage: stand up a fully scoped new agent (own SQL login + GRANT/DENY, registered in `AGENT_MODULE_MAP`) rather than bolting a new tool onto an existing agent — that's what actually demonstrates the project's least-privilege architecture scales to a new domain.
+
+### Tasks
+
+- [x] `docs/phase9_design.md` — full stage-by-stage playbook + worked Admissions checklist
+- [x] `docs/plan.md` — this section
+- [x] `CLAUDE.md` — Phase 9 row + short blurb
+- [x] `README.md` — short extensibility mention
+- [ ] (Future, optional) Actually build Admissions end-to-end per this playbook

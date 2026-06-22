@@ -50,7 +50,7 @@ See [CLAUDE.md](CLAUDE.md) for full agent roles, guardrails, and behavior rules.
 
 ## Project Status
 
-Phases 1–7 complete. Phase 8 (Semantic Query Cache, Layer 3) is in progress — see [docs/phase8_design.md](docs/phase8_design.md). See [docs/plan.md](docs/plan.md) for the detailed phase breakdown.
+Phases 1–7 complete. Phase 8 (Semantic Query Cache, Layer 3) is in progress — see [docs/phase8_design.md](docs/phase8_design.md). Phase 9 documents the playbook for adding a new domain end-to-end (e.g. Admissions) — see [docs/phase9_design.md](docs/phase9_design.md). See [docs/plan.md](docs/plan.md) for the detailed phase breakdown.
 
 ---
 

@@ -21,6 +21,7 @@ Healthcare: Patients, Providers, Claims, Labs, Prescriptions, Facilities, Payers
 | 6 | Multi-Agent Architecture | ✅ Complete (2026-06-15) |
 | 7 | Smart Caching + Chat Frontend | ✅ Complete (2026-06-20) |
 | 8 | Semantic Query Cache (Layer 3) | 🔄 In Progress |
+| 9 | Extensibility Playbook (New Domain Walkthrough) | 📘 Documented (2026-06-22) |
 
 ---
 
@@ -98,6 +99,12 @@ A third cache layer, checked only on a Layer 2 exact-match miss inside `agents/o
 
 ---
 
+## Extensibility Playbook (Phase 9)
+
+Documents the repeatable, ordered process for adding a brand-new domain end-to-end — raw data → DW tables → ETL → Power BI → Claude agent layer → RAG/permissions/docs wiring — using a hypothetical Admissions domain as the worked example. **Only the agent-layer stage actually involves writing new Claude agent code**; the other five stages are deterministic data engineering (Python generator, SQL DDL, a stored-proc ETL step, TMDL text + a human Power BI build). Recommends standing up a fully scoped new agent (own SQL login, own GRANT/DENY, registered in `AGENT_MODULE_MAP`) over bolting a new tool onto an existing agent, since that's what actually demonstrates the project's least-privilege architecture scales to a new domain. See `docs/phase9_design.md` for the full stage-by-stage playbook and worked checklist.
+
+---
+
 ## Guardrails
 
 ### Access Control
@@ -131,6 +138,7 @@ HealthcareADK/
 │   ├── phase6_design.md       ← Phase 6 architecture (multi-agent, orchestrator, budget tracker)
 │   ├── phase7_design.md       ← Phase 7 architecture (prompt caching, response cache, chat frontend)
 │   ├── phase8_design.md       ← Phase 8 architecture (semantic query cache, Layer 3) — in progress
+│   ├── phase9_design.md       ← Phase 9 extensibility playbook (new domain walkthrough, Admissions worked example)
 │   └── schema_kb.json         ← RAG knowledge base (tables, columns, SPs) — built by scripts/build_schema_kb.py
 ├── landing_zone/              ← Raw data drop zone
 │   ├── claims/

@@ -21,7 +21,6 @@ Healthcare: Patients, Providers, Claims, Labs, Prescriptions, Facilities, Payers
 | 6 | Multi-Agent Architecture | ✅ Complete (2026-06-15) |
 | 7 | Smart Caching + Chat Frontend | ✅ Complete (2026-06-20) |
 | 8 | Semantic Query Cache (Layer 3) | ✅ Complete (2026-06-23) |
-| 9 | Extensibility Playbook (New Domain Walkthrough) | 📘 Documented (2026-06-22) |
 
 ---
 
@@ -96,12 +95,6 @@ ETLAgent dispatch invalidates the `ETLAgent` + `ClinicalAgent` cache entries so 
 ## Semantic Caching (Phase 8)
 
 A third cache layer, checked only on a Layer 2 exact-match miss inside `agents/orchestrator.py:_dispatch()`: embed the query locally (`sentence-transformers`, `all-MiniLM-L6-v2`), find the best cosine-similarity candidate in `dw.QueryCache` (`agents/cache.py:cache_get_semantic()`), then require a mandatory Claude Haiku equivalence check (`verify_equivalence()`) before ever serving it — a candidate is never reused on similarity score alone. Fails closed at every stage. `SIMILARITY_FLOOR` (`0.80`) was set from live measurement, not guessed — the motivating "ohio" vs "OH" paraphrase scores 0.825, and a negation scores *higher* (0.9495) than the true paraphrase, which is exactly why the floor only ever produces a candidate and `verify_equivalence()` is the sole authority on reuse. See `docs/phase8_design.md` for the full design and live-test results, and `docs/plan.md § Phase 8` for the task checklist.
-
----
-
-## Extensibility Playbook (Phase 9)
-
-Documents the repeatable, ordered process for adding a brand-new domain end-to-end — raw data → DW tables → ETL → Power BI → Claude agent layer → RAG/permissions/docs wiring — using a hypothetical Admissions domain as the worked example. **Only the agent-layer stage actually involves writing new Claude agent code**; the other five stages are deterministic data engineering (Python generator, SQL DDL, a stored-proc ETL step, TMDL text + a human Power BI build). Recommends standing up a fully scoped new agent (own SQL login, own GRANT/DENY, registered in `AGENT_MODULE_MAP`) over bolting a new tool onto an existing agent, since that's what actually demonstrates the project's least-privilege architecture scales to a new domain. See `docs/phase9_design.md` for the full stage-by-stage playbook and worked checklist.
 
 ---
 

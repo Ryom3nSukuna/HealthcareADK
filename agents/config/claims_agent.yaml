@@ -38,5 +38,5 @@ db_tables:
   - dw.DimProcedure
   - dw.DimDate
 
-token_budget: 60000
+token_budget: 500000
 cache_ttl_minutes: 30

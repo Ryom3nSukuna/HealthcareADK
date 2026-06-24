@@ -85,6 +85,9 @@ HEALTHCAREADK_SQL_DB=HealthcareADK
 # Anthropic API key
 ANTHROPIC_API_KEY=sk-ant-...
 
+# API key for the /chat endpoint (X-API-Key header); set to any strong random string
+HEALTHCAREADK_API_KEY=your-strong-api-key
+
 # Agent login passwords (needed for deploy_agent_logins.py and permission tests)
 HEALTHCAREADK_PWD_AGENT_ORCHESTRATOR=your-strong-password
 HEALTHCAREADK_PWD_AGENT_CLAIMS=your-strong-password

@@ -1,11 +1,21 @@
 const API_URL = "http://localhost:8000/chat";
 const SESSION_KEY = "healthcareadk_session_id";
+const API_KEY_STORAGE = "healthcareadk_api_key";
 
 const messagesEl = document.getElementById("messages");
 const formEl = document.getElementById("chat-form");
 const inputEl = document.getElementById("chat-input");
 
 let sessionId = localStorage.getItem(SESSION_KEY) || null;
+
+function getApiKey() {
+  let key = localStorage.getItem(API_KEY_STORAGE);
+  if (!key) {
+    key = window.prompt("Enter your HealthcareADK API key (set via HEALTHCAREADK_API_KEY in .env):");
+    if (key) localStorage.setItem(API_KEY_STORAGE, key.trim());
+  }
+  return key ? key.trim() : "";
+}
 
 function escapeHtml(text) {
   const div = document.createElement("div");
@@ -41,7 +51,7 @@ formEl.addEventListener("submit", async (event) => {
   try {
     const res = await fetch(API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-API-Key": getApiKey() },
       body: JSON.stringify({ message, session_id: sessionId }),
     });
     if (!res.ok) {

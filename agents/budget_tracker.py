@@ -25,9 +25,11 @@ _CONFIG_DIR = Path(__file__).parent / "config"
 def _get_conn() -> pyodbc.Connection:
     server = os.environ["HEALTHCAREADK_SQL_SERVER"]
     db = os.environ["HEALTHCAREADK_SQL_DB"]
+    user = "agent_orchestrator"
+    pwd = os.environ["HEALTHCAREADK_PWD_AGENT_ORCHESTRATOR"]
     return pyodbc.connect(
         f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-        f"SERVER={server};DATABASE={db};Trusted_Connection=yes;"
+        f"SERVER={server};DATABASE={db};UID={user};PWD={pwd};"
     )
 
 

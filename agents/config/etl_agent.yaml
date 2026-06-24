@@ -35,5 +35,5 @@ db_schemas:
 db_tables:
   - dw.ETLLog
 
-token_budget: 15000
+token_budget: 40000
 cache_ttl_minutes: 15

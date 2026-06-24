@@ -53,4 +53,4 @@ db_login: agent_orchestrator
 db_schemas:
   - rpt
 
-token_budget: 10000
+token_budget: 30000

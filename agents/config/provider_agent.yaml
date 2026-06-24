@@ -38,5 +38,5 @@ db_tables:
   - dw.DimDiagnosis
   - dw.DimProcedure
 
-token_budget: 20000
+token_budget: 60000
 cache_ttl_minutes: 30

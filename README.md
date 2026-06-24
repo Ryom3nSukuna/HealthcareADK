@@ -164,7 +164,7 @@ Then run the SSIS packages (see `ssis/SSIS_Design_Guide.md`) or call `EXEC dw.us
 ### 6. Run the chat UI (optional)
 
 ```powershell
-uvicorn api.main:app --reload --port 8000
+uvicorn client.api.main:app --reload --port 8000
 ```
 
 Then open `frontend/index.html` directly in a browser (no build step — `file://` works, CORS allows it). Type a question; the OrchestratorAgent routes it to the right domain agent(s) and the response renders as markdown.

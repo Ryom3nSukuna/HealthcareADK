@@ -2,8 +2,8 @@
 OrchestratorAgent — routes user requests to domain agents and enforces token budgets.
 
 Usage:
-    python -m agents.orchestrator "Show me the denial rate for Medicare claims"
-    python -m agents.orchestrator "Refresh the dashboard and show YoY margin" --session abc123
+    python -m client.agents.orchestrator "Show me the denial rate for Medicare claims"
+    python -m client.agents.orchestrator "Refresh the dashboard and show YoY margin" --session abc123
 """
 import argparse
 import importlib
@@ -100,7 +100,7 @@ def _dispatch(agent_name: str, user_request: str, session_id: str, client: Anthr
         return f"[OrchestratorAgent] {budget_msg}"
 
     try:
-        module = importlib.import_module(f"agents.{module_key}")
+        module = importlib.import_module(f"client.agents.{module_key}")
     except ModuleNotFoundError:
         return f"[OrchestratorAgent] Agent module not yet built: agents/{module_key}.py"
 

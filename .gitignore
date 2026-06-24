@@ -16,17 +16,19 @@ build/
 
 # Data files (generated — too large for source control)
 landing_zone/
+client/landing_zone/
 
-# Power BI binary
+# Power BI binary (locked file may remain at old path during move)
 powerbi/*.pbix
+client/powerbi/*.pbix
 
 # Schema knowledge base (rebuilt from live DB)
-docs/schema_kb.json
+client/docs/schema_kb.json
 
 # Claude Code local settings (machine-specific permission overrides)
 .claude/settings.local.json
 
 # SSIS Visual Studio local state and build artifacts
-ssis/**/.vs/
-ssis/**/obj/
-ssis/**/bin/
+client/ssis/**/.vs/
+client/ssis/**/obj/
+client/ssis/**/bin/

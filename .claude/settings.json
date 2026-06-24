@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python scripts/hooks/guard_file_read.py",
+            "command": "python client/scripts/hooks/guard_file_read.py",
             "shell": "bash",
             "timeout": 10,
             "statusMessage": "Checking read path..."
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python scripts/hooks/guard_file_read.py",
+            "command": "python client/scripts/hooks/guard_file_read.py",
             "shell": "bash",
             "timeout": 10,
             "statusMessage": "Checking read path..."
@@ -31,7 +31,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python scripts/hooks/guard_query.py",
+            "command": "python client/scripts/hooks/guard_query.py",
             "shell": "bash",
             "timeout": 10,
             "statusMessage": "Checking query safety..."
@@ -43,7 +43,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python scripts/hooks/guard_file_write.py",
+            "command": "python client/scripts/hooks/guard_file_write.py",
             "shell": "bash",
             "timeout": 10,
             "statusMessage": "Checking write path..."
@@ -57,7 +57,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python scripts/hooks/on_data_drop.py",
+            "command": "python client/scripts/hooks/on_data_drop.py",
             "shell": "bash",
             "timeout": 300,
             "statusMessage": "Running ETL pipeline..."
@@ -69,7 +69,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python scripts/hooks/on_ssis_complete.py",
+            "command": "python client/scripts/hooks/on_ssis_complete.py",
             "shell": "bash",
             "timeout": 30,
             "statusMessage": "Checking ETL log..."
@@ -81,7 +81,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python scripts/hooks/on_pbi_deploy.py",
+            "command": "python client/scripts/hooks/on_pbi_deploy.py",
             "shell": "bash",
             "timeout": 10,
             "statusMessage": "Summarizing pbi-tools output..."

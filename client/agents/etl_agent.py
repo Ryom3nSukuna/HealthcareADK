@@ -1,7 +1,7 @@
 from engine.base import run_agent
-from agents.loader import load_config
-from agents.tools.shell_tools import build_tools as build_shell_tools
-from agents.tools.sql_tools import build_tools as build_sql_tools
+from client.agents.loader import load_config
+from client.agents.tools.shell_tools import build_tools as build_shell_tools
+from client.agents.tools.sql_tools import build_tools as build_sql_tools
 from anthropic import Anthropic
 
 

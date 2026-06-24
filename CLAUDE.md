@@ -123,77 +123,74 @@ HealthcareADK/
 ├── CLAUDE.md                  ← You are here
 ├── README.md                  ← Project overview
 ├── .env                       ← Local secrets (gitignored — never committed)
-├── .gitignore                 ← Ignores .env, landing_zone/, __pycache__/, schema_kb.json, .claude/settings.local.json, ssis/**/.vs|obj|bin
-├── .mcp.json                  ← MCP server registry
-├── docs/
-│   ├── plan.md                ← Detailed phase plan
-│   ├── phase5_design.md       ← Phase 5 architecture (agents, TMDL, MCP)
-│   ├── phase6_design.md       ← Phase 6 architecture (multi-agent, orchestrator, budget tracker)
-│   ├── phase7_design.md       ← Phase 7 architecture (prompt caching, response cache, chat frontend)
-│   ├── phase8_design.md       ← Phase 8 architecture (semantic query cache, Layer 3)
-│   └── schema_kb.json         ← RAG knowledge base (tables, columns, SPs) — built by scripts/build_schema_kb.py
-├── landing_zone/              ← Raw data drop zone
-│   ├── claims/
-│   ├── facilities/
-│   ├── financials/
-│   ├── labs/
-│   ├── manifest/
-│   ├── patients/
-│   ├── payers/
-│   ├── prescriptions/
-│   └── providers/
-├── scripts/                   ← ETL and utility scripts
-│   ├── deploy_agent_logins.py ← Creates SQL Server logins from env vars (no passwords in source)
-│   ├── build_schema_kb.py     ← Rebuilds docs/schema_kb.json RAG index
-│   ├── generate_all.py        ← Synthetic data generation
-│   └── hooks/                 ← Claude hook scripts
-│       ├── guard_file_read.py ← Block reads of .env / credential files (Read + mcp__file__read_file)
-│       ├── guard_file_write.py← Block writes to credential files / path traversal / outside powerbi/tmdl//sql
-│       ├── guard_query.py     ← Block DML/DDL on dw.*, DELETE without WHERE
-│       ├── on_data_drop.py    ← Auto-run ETL after generate_all.py
-│       ├── on_ssis_complete.py← Query dw.ETLLog after SSIS run
-│       └── on_pbi_deploy.py   ← Surface pbi-tools output
-├── sql/                       ← DDL, stored procedures, views (00–13)
-├── tests/                     ← Phase 6/7 pytest suites
-│   ├── test_phase6.py         ← Unit tests: routing, multi-hop, budget, tool isolation, response cache (no DB needed)
-│   └── test_permissions.py    ← Integration tests: SQL Server schema permissions per agent login
-│                                 Skipped unless HEALTHCAREADK_TEST_PERMISSIONS=1
-├── ssis/                      ← SSIS package design guides
-├── engine/                    ← REUSABLE FRAMEWORK — zero domain knowledge; copy wholesale to any new client
+├── .gitignore
+├── .mcp.json                  ← MCP server registry (points into client/mcp/)
+│
+├── engine/                    ← REUSABLE FRAMEWORK — zero domain knowledge
+│   │                             Copy wholesale to any new client; never edit for domain reasons
 │   ├── base.py                ← Shared agentic loop (tool execution, iteration cap, budget recording)
 │   ├── budget_tracker.py      ← Token usage logger → dw.AgentUsageLog
 │   ├── cache.py               ← Layer 2 response cache + Layer 3 semantic cache
 │   └── embeddings.py          ← Layer 3: lazy sentence-transformers singleton, embed()
-├── agents/                    ← CLIENT-PACK — healthcare domain; replace entirely for a new client domain
-│   ├── config/                ← Agent YAML configs (system prompt, tool allowlist, schema scope, token budget)
-│   ├── loader.py              ← load_config() helper — loads YAML from agents/config/
-│   ├── tools/
-│   │   ├── sql_tools.py       ← pyodbc SQL tools + Anthropic API definitions (all SQL agents)
-│   │   ├── file_tools.py      ← File I/O tools + write guard (ReportingAgent)
-│   │   └── shell_tools.py     ← Subprocess tools: dtexec, python, pbi-tools, sqlcmd (ETL + Reporting)
-│   ├── orchestrator.py        ← OrchestratorAgent: routes requests, enforces budgets, merges multi-hop results
-│   ├── claims_agent.py        ← ClaimsAgent
-│   ├── clinical_agent.py      ← ClinicalAgent
-│   ├── financial_agent.py     ← FinancialAgent
-│   ├── reporting_agent.py     ← ReportingAgent
-│   ├── etl_agent.py           ← ETLAgent
-│   ├── provider_agent.py      ← ProviderAgent
-│   └── skills/                ← Skill specs: claims-summary, financial-yoy, abnormal-labs
-├── mcp/
-│   ├── sqlserver/             ← mcp-sqlserver (FastMCP, 9 tools) ✅ Live
-│   ├── shell/                 ← mcp-shell (FastMCP, 4 tools) ✅ Live
-│   ├── file/                  ← mcp-file (FastMCP, 4 tools) ✅ Live
-│   └── powerbi/               ← mcp-powerbi (FastMCP, 4 tools) ⏸ Deferred
-├── powerbi/
-│   ├── tmdl/                  ← TMDL export (source of truth for data model)
-│   └── *.md                   ← Design guides and DAX reference
-├── api/
-│   ├── main.py                ← FastAPI app: POST /chat (wraps orchestrator.run_with_meta()), GET /health
-│   └── models.py              ← ChatRequest / ChatResponse Pydantic models
-└── frontend/
-    ├── index.html             ← Chat UI shell (marked.js + DOMPurify via CDN)
-    ├── app.js                 ← Fetch /chat, render + sanitize markdown, session persistence
-    └── style.css              ← Minimal dark-theme chat styling
+│
+├── tests/                     ← Test suites (no DB needed for unit tests)
+│   ├── test_phase6.py         ← Unit tests: routing, multi-hop, budget, tool isolation, caching
+│   └── test_permissions.py    ← Integration tests: SQL Server schema permissions per agent login
+│                                 Skipped unless HEALTHCAREADK_TEST_PERMISSIONS=1
+│
+└── client/                    ← CLIENT-PACK — healthcare domain
+    │                             Replace this entire directory for a new client domain
+    ├── agents/
+    │   ├── config/            ← Agent YAML configs (system prompt, tool allowlist, schema scope, token budget)
+    │   ├── loader.py          ← load_config() helper — loads YAML from client/agents/config/
+    │   ├── tools/
+    │   │   ├── sql_tools.py   ← pyodbc SQL tools + Anthropic API definitions (all SQL agents)
+    │   │   ├── file_tools.py  ← File I/O tools + write guard (ReportingAgent)
+    │   │   └── shell_tools.py ← Subprocess tools: dtexec, python, pbi-tools, sqlcmd (ETL + Reporting)
+    │   ├── orchestrator.py    ← OrchestratorAgent: routes requests, enforces budgets, merges multi-hop results
+    │   ├── claims_agent.py    ← ClaimsAgent
+    │   ├── clinical_agent.py  ← ClinicalAgent
+    │   ├── financial_agent.py ← FinancialAgent
+    │   ├── reporting_agent.py ← ReportingAgent
+    │   ├── etl_agent.py       ← ETLAgent
+    │   ├── provider_agent.py  ← ProviderAgent
+    │   └── skills/            ← Skill specs: claims-summary, financial-yoy, abnormal-labs
+    ├── api/
+    │   ├── main.py            ← FastAPI app: POST /chat, GET /health, serves frontend/
+    │   └── models.py          ← ChatRequest / ChatResponse Pydantic models
+    ├── frontend/
+    │   ├── index.html         ← Chat UI shell (marked.js + DOMPurify via CDN)
+    │   ├── app.js             ← Fetch /chat, render + sanitize markdown, session persistence
+    │   └── style.css          ← Minimal dark-theme chat styling
+    ├── mcp/
+    │   ├── sqlserver/         ← mcp-sqlserver (FastMCP, 9 tools) ✅ Live
+    │   ├── shell/             ← mcp-shell (FastMCP, 4 tools) ✅ Live
+    │   ├── file/              ← mcp-file (FastMCP, 4 tools) ✅ Live
+    │   └── powerbi/           ← mcp-powerbi (FastMCP, 4 tools) ⏸ Deferred
+    ├── sql/                   ← DDL, stored procedures, views (00–13)
+    ├── scripts/               ← ETL and utility scripts
+    │   ├── deploy_agent_logins.py ← Creates SQL Server logins from env vars (no passwords in source)
+    │   ├── build_schema_kb.py     ← Rebuilds client/docs/schema_kb.json RAG index
+    │   ├── generate_all.py        ← Synthetic data generation
+    │   └── hooks/             ← Claude hook scripts
+    │       ├── guard_file_read.py  ← Block reads of .env / credential files
+    │       ├── guard_file_write.py ← Block writes outside powerbi/tmdl/ and sql/
+    │       ├── guard_query.py      ← Block DML/DDL on dw.*, DELETE without WHERE
+    │       ├── on_data_drop.py     ← Auto-run ETL after generate_all.py
+    │       ├── on_ssis_complete.py ← Query dw.ETLLog after SSIS run
+    │       └── on_pbi_deploy.py    ← Surface pbi-tools output
+    ├── docs/
+    │   ├── plan.md            ← Detailed phase plan
+    │   ├── phase5_design.md   ← Phase 5 architecture
+    │   ├── phase6_design.md   ← Phase 6 architecture
+    │   ├── phase7_design.md   ← Phase 7 architecture
+    │   ├── phase8_design.md   ← Phase 8 architecture
+    │   └── schema_kb.json     ← RAG knowledge base (gitignored — rebuilt from live DB)
+    ├── powerbi/
+    │   ├── tmdl/              ← TMDL export (source of truth for data model)
+    │   └── *.md               ← Design guides and DAX reference
+    ├── ssis/                  ← SSIS package design guides
+    └── landing_zone/          ← Raw data drop zone (gitignored)
 ```
 
 ---

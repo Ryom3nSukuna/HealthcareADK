@@ -15,8 +15,8 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from agents.orchestrator import run_with_meta
-from api.models import ChatRequest, ChatResponse
+from client.agents.orchestrator import run_with_meta
+from client.api.models import ChatRequest, ChatResponse
 
 load_dotenv()
 

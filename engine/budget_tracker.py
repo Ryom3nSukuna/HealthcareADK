@@ -23,7 +23,7 @@ MIN_BUDGET_THRESHOLD = 2000  # escalate when tokens remaining fall below this
 # that agent YAML configs live at <project_root>/agents/config/.
 _CONFIG_DIR = Path(os.environ.get(
     "HEALTHCAREADK_AGENT_CONFIG_DIR",
-    str(Path(__file__).parent.parent / "agents" / "config"),
+    str(Path(__file__).parent.parent / "client" / "agents" / "config"),
 ))
 
 

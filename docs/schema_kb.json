@@ -1,0 +1,2941 @@
+{
+  "generated_at": "2026-06-20T10:10:00.176676+00:00",
+  "database": "HealthcareADK",
+  "schemas": {
+    "stg": {
+      "stg.Claims": {
+        "schema": "stg",
+        "name": "Claims",
+        "type": "TABLE",
+        "description": "Raw insurance claims data from landing zone",
+        "columns": [
+          {
+            "name": "stg_load_id",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_load_date",
+            "type": "datetime",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_source_file",
+            "type": "varchar(200)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_status",
+            "type": "varchar(20)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "claim_id",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "patient_id",
+            "type": "varchar(36)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "provider_id",
+            "type": "varchar(36)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "facility_id",
+            "type": "varchar(36)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "payer_id",
+            "type": "varchar(36)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "claim_date",
+            "type": "varchar(12)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "service_date",
+            "type": "varchar(12)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "icd10_primary",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "icd10_secondary",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "procedure_code",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "billed_amount",
+            "type": "varchar(15)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "allowed_amount",
+            "type": "varchar(15)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "paid_amount",
+            "type": "varchar(15)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "claim_status",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "denial_reason",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "created_at",
+            "type": "varchar(30)",
+            "nullable": true,
+            "description": ""
+          }
+        ]
+      },
+      "stg.Facilities": {
+        "schema": "stg",
+        "name": "Facilities",
+        "type": "TABLE",
+        "description": "Raw facility/hospital data from landing zone",
+        "columns": [
+          {
+            "name": "stg_load_id",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_load_date",
+            "type": "datetime",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_source_file",
+            "type": "varchar(200)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_status",
+            "type": "varchar(20)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "facility_id",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "facility_name",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "facility_type",
+            "type": "varchar(30)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "npi",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "address",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "city",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "state",
+            "type": "char(2)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "zip_code",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "phone",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "bed_count",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "created_at",
+            "type": "varchar(30)",
+            "nullable": true,
+            "description": ""
+          }
+        ]
+      },
+      "stg.Financials": {
+        "schema": "stg",
+        "name": "Financials",
+        "type": "TABLE",
+        "description": "Raw financial transaction data from landing zone",
+        "columns": [
+          {
+            "name": "stg_load_id",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_load_date",
+            "type": "datetime",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_source_file",
+            "type": "varchar(200)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_status",
+            "type": "varchar(20)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "transaction_id",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "transaction_date",
+            "type": "varchar(12)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "transaction_type",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "department",
+            "type": "varchar(50)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "facility_id",
+            "type": "varchar(36)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "amount",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "fiscal_year",
+            "type": "varchar(5)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "fiscal_quarter",
+            "type": "varchar(2)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "cost_center",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "gl_account",
+            "type": "varchar(50)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "description",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "created_at",
+            "type": "varchar(30)",
+            "nullable": true,
+            "description": ""
+          }
+        ]
+      },
+      "stg.Labs": {
+        "schema": "stg",
+        "name": "Labs",
+        "type": "TABLE",
+        "description": "Raw lab result records from landing zone",
+        "columns": [
+          {
+            "name": "stg_load_id",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_load_date",
+            "type": "datetime",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_source_file",
+            "type": "varchar(200)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_status",
+            "type": "varchar(20)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "lab_id",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "patient_id",
+            "type": "varchar(36)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "provider_id",
+            "type": "varchar(36)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "facility_id",
+            "type": "varchar(36)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "order_date",
+            "type": "varchar(12)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "result_date",
+            "type": "varchar(12)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "test_name",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "loinc_code",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "result_value",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "result_unit",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "reference_range_low",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "reference_range_high",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "abnormal_flag",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "created_at",
+            "type": "varchar(30)",
+            "nullable": true,
+            "description": ""
+          }
+        ]
+      },
+      "stg.Patients": {
+        "schema": "stg",
+        "name": "Patients",
+        "type": "TABLE",
+        "description": "Raw patient demographic data loaded from landing zone CSVs",
+        "columns": [
+          {
+            "name": "stg_load_id",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_load_date",
+            "type": "datetime",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_source_file",
+            "type": "varchar(200)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_status",
+            "type": "varchar(20)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "patient_id",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "first_name",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "last_name",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "date_of_birth",
+            "type": "varchar(12)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "gender",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "blood_type",
+            "type": "varchar(5)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "address",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "city",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "state",
+            "type": "char(2)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "zip_code",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "phone",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "email",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "primary_payer_id",
+            "type": "varchar(36)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "primary_provider_id",
+            "type": "varchar(36)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "created_at",
+            "type": "varchar(30)",
+            "nullable": true,
+            "description": ""
+          }
+        ]
+      },
+      "stg.Payers": {
+        "schema": "stg",
+        "name": "Payers",
+        "type": "TABLE",
+        "description": "Raw insurance payer data from landing zone",
+        "columns": [
+          {
+            "name": "stg_load_id",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_load_date",
+            "type": "datetime",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_source_file",
+            "type": "varchar(200)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_status",
+            "type": "varchar(20)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "payer_id",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "payer_name",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "payer_type",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "plan_name",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "plan_type",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "address",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "city",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "state",
+            "type": "char(2)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "zip_code",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "phone",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "created_at",
+            "type": "varchar(30)",
+            "nullable": true,
+            "description": ""
+          }
+        ]
+      },
+      "stg.Prescriptions": {
+        "schema": "stg",
+        "name": "Prescriptions",
+        "type": "TABLE",
+        "description": "Raw prescription records from landing zone",
+        "columns": [
+          {
+            "name": "stg_load_id",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_load_date",
+            "type": "datetime",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_source_file",
+            "type": "varchar(200)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_status",
+            "type": "varchar(20)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "prescription_id",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "patient_id",
+            "type": "varchar(36)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "provider_id",
+            "type": "varchar(36)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "drug_name",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "ndc_code",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "dosage",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "frequency",
+            "type": "varchar(50)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "days_supply",
+            "type": "varchar(5)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "quantity",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "refills_authorized",
+            "type": "varchar(5)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "refills_remaining",
+            "type": "varchar(5)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "prescribed_date",
+            "type": "varchar(12)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "fill_date",
+            "type": "varchar(12)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "payer_id",
+            "type": "varchar(36)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "cost_to_patient",
+            "type": "varchar(15)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "cost_to_payer",
+            "type": "varchar(15)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "created_at",
+            "type": "varchar(30)",
+            "nullable": true,
+            "description": ""
+          }
+        ]
+      },
+      "stg.Providers": {
+        "schema": "stg",
+        "name": "Providers",
+        "type": "TABLE",
+        "description": "Raw provider data (doctors, nurses) from landing zone",
+        "columns": [
+          {
+            "name": "stg_load_id",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_load_date",
+            "type": "datetime",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_source_file",
+            "type": "varchar(200)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "stg_status",
+            "type": "varchar(20)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "provider_id",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "npi",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "first_name",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "last_name",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "specialty",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "license_number",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "facility_id",
+            "type": "varchar(36)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "phone",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "email",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "years_experience",
+            "type": "varchar(5)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "created_at",
+            "type": "varchar(30)",
+            "nullable": true,
+            "description": ""
+          }
+        ]
+      }
+    },
+    "dw": {
+      "dw.AgentUsageLog": {
+        "schema": "dw",
+        "name": "AgentUsageLog",
+        "type": "TABLE",
+        "description": "Phase 6 budget tracking \u2014 one row per Claude API call; stores token counts, tool calls, and session IDs per agent",
+        "columns": [
+          {
+            "name": "LogID",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "AgentName",
+            "type": "varchar(50)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "SessionID",
+            "type": "varchar(100)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "InputTokens",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "OutputTokens",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ToolCalls",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ModelID",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "RequestTimestamp",
+            "type": "datetime2",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "Notes",
+            "type": "varchar(500)",
+            "nullable": true,
+            "description": ""
+          }
+        ]
+      },
+      "dw.DimDate": {
+        "schema": "dw",
+        "name": "DimDate",
+        "type": "TABLE",
+        "description": "Date dimension pre-populated 2019\u20132030, fiscal calendar",
+        "columns": [
+          {
+            "name": "DateKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "FullDate",
+            "type": "date",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "DayOfWeek",
+            "type": "tinyint",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "DayName",
+            "type": "varchar(10)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "DayOfMonth",
+            "type": "tinyint",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "DayOfYear",
+            "type": "smallint",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "WeekOfYear",
+            "type": "tinyint",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "MonthNumber",
+            "type": "tinyint",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "MonthName",
+            "type": "varchar(10)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "Quarter",
+            "type": "tinyint",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "QuarterName",
+            "type": "char(2)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "Year",
+            "type": "smallint",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "IsWeekend",
+            "type": "bit",
+            "nullable": false,
+            "description": "1 = Saturday or Sunday"
+          },
+          {
+            "name": "FiscalYear",
+            "type": "smallint",
+            "nullable": false,
+            "description": "Fiscal year (same as calendar year in this dataset)"
+          },
+          {
+            "name": "FiscalQuarter",
+            "type": "tinyint",
+            "nullable": false,
+            "description": "Fiscal quarter (Q1\u2013Q4)"
+          }
+        ]
+      },
+      "dw.DimDiagnosis": {
+        "schema": "dw",
+        "name": "DimDiagnosis",
+        "type": "TABLE",
+        "description": "ICD-10 diagnosis codes and descriptions",
+        "columns": [
+          {
+            "name": "DiagnosisKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ICD10Code",
+            "type": "varchar(10)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "Description",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          }
+        ]
+      },
+      "dw.DimDrug": {
+        "schema": "dw",
+        "name": "DimDrug",
+        "type": "TABLE",
+        "description": "Drug/medication dimension \u2014 name, class, controlled status",
+        "columns": [
+          {
+            "name": "DrugKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "DrugName",
+            "type": "varchar(100)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "NDCCode",
+            "type": "varchar(20)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "Dosage",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "Frequency",
+            "type": "varchar(50)",
+            "nullable": true,
+            "description": ""
+          }
+        ]
+      },
+      "dw.DimFacility": {
+        "schema": "dw",
+        "name": "DimFacility",
+        "type": "TABLE",
+        "description": "Facility dimension \u2014 hospitals, clinics, state, bed count",
+        "columns": [
+          {
+            "name": "FacilityKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "FacilityID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "FacilityName",
+            "type": "varchar(200)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "FacilityType",
+            "type": "varchar(30)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "NPI",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "Address",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "City",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "State",
+            "type": "char(2)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "ZipCode",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "Phone",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "BedCount",
+            "type": "smallint",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "CreatedAt",
+            "type": "datetime",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "DWUpdatedAt",
+            "type": "datetime",
+            "nullable": false,
+            "description": ""
+          }
+        ]
+      },
+      "dw.DimPatient": {
+        "schema": "dw",
+        "name": "DimPatient",
+        "type": "TABLE",
+        "description": "SCD2 patient dimension \u2014 tracks demographic history",
+        "columns": [
+          {
+            "name": "PatientKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PatientID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "FirstName",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "LastName",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "FullName",
+            "type": "varchar(201)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "DateOfBirth",
+            "type": "date",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "Gender",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "BloodType",
+            "type": "varchar(5)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "Address",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "City",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "State",
+            "type": "char(2)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "ZipCode",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "Phone",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "Email",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "PrimaryPayerKey",
+            "type": "int",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "PrimaryProviderKey",
+            "type": "int",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "EffectiveDate",
+            "type": "date",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ExpirationDate",
+            "type": "date",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "IsCurrent",
+            "type": "bit",
+            "nullable": false,
+            "description": "SCD2 flag \u2014 1 = current record, 0 = historical"
+          },
+          {
+            "name": "CreatedAt",
+            "type": "datetime",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "DWUpdatedAt",
+            "type": "datetime",
+            "nullable": false,
+            "description": ""
+          }
+        ]
+      },
+      "dw.DimPayer": {
+        "schema": "dw",
+        "name": "DimPayer",
+        "type": "TABLE",
+        "description": "Payer dimension \u2014 commercial, Medicare, Medicaid, Self-Pay",
+        "columns": [
+          {
+            "name": "PayerKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PayerID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PayerName",
+            "type": "varchar(100)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PayerType",
+            "type": "varchar(20)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PlanName",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "PlanType",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "Address",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "City",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "State",
+            "type": "char(2)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "ZipCode",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "Phone",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "CreatedAt",
+            "type": "datetime",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "DWUpdatedAt",
+            "type": "datetime",
+            "nullable": false,
+            "description": ""
+          }
+        ]
+      },
+      "dw.DimProcedure": {
+        "schema": "dw",
+        "name": "DimProcedure",
+        "type": "TABLE",
+        "description": "CPT procedure codes and descriptions",
+        "columns": [
+          {
+            "name": "ProcedureKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "CPTCode",
+            "type": "varchar(10)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "Description",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "BasePrice",
+            "type": "decimal(10,2)",
+            "nullable": true,
+            "description": ""
+          }
+        ]
+      },
+      "dw.DimProvider": {
+        "schema": "dw",
+        "name": "DimProvider",
+        "type": "TABLE",
+        "description": "Provider dimension \u2014 specialty, license, NPI",
+        "columns": [
+          {
+            "name": "ProviderKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ProviderID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "NPI",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "FirstName",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "LastName",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "FullName",
+            "type": "varchar(201)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "Specialty",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "LicenseNumber",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "FacilityKey",
+            "type": "int",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "Phone",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "Email",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "YearsExperience",
+            "type": "tinyint",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "CreatedAt",
+            "type": "datetime",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "DWUpdatedAt",
+            "type": "datetime",
+            "nullable": false,
+            "description": ""
+          }
+        ]
+      },
+      "dw.ETLLog": {
+        "schema": "dw",
+        "name": "ETLLog",
+        "type": "TABLE",
+        "description": "",
+        "columns": [
+          {
+            "name": "LogID",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "RunStarted",
+            "type": "datetime",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "RunFinished",
+            "type": "datetime",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "Entity",
+            "type": "varchar(50)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "RowsInserted",
+            "type": "int",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "RowsUpdated",
+            "type": "int",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "RowsSkipped",
+            "type": "int",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "Status",
+            "type": "varchar(20)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ErrorMessage",
+            "type": "nvarchar(MAX)",
+            "nullable": true,
+            "description": ""
+          }
+        ]
+      },
+      "dw.FactClaims": {
+        "schema": "dw",
+        "name": "FactClaims",
+        "type": "TABLE",
+        "description": "Claim fact table \u2014 billed, allowed, paid, denied amounts",
+        "columns": [
+          {
+            "name": "ClaimKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ClaimID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PatientKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ProviderKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "FacilityKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PayerKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ServiceDateKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ClaimDateKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "DiagnosisKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ProcedureKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "BilledAmount",
+            "type": "decimal(10,2)",
+            "nullable": false,
+            "description": "Amount billed by provider to payer"
+          },
+          {
+            "name": "AllowedAmount",
+            "type": "decimal(10,2)",
+            "nullable": false,
+            "description": "Amount allowed by payer contract"
+          },
+          {
+            "name": "PaidAmount",
+            "type": "decimal(10,2)",
+            "nullable": false,
+            "description": "Amount actually paid by payer"
+          },
+          {
+            "name": "WriteOffAmount",
+            "type": "decimal(11,2)",
+            "nullable": true,
+            "description": "Contractual write-off (BilledAmount minus AllowedAmount)"
+          },
+          {
+            "name": "ClaimStatus",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": "Approved | Denied | Pending | Appealed"
+          },
+          {
+            "name": "DenialReason",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "CreatedAt",
+            "type": "datetime",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "DWLoadedAt",
+            "type": "datetime",
+            "nullable": false,
+            "description": ""
+          }
+        ]
+      },
+      "dw.FactFinancials": {
+        "schema": "dw",
+        "name": "FactFinancials",
+        "type": "TABLE",
+        "description": "Financial fact \u2014 revenue, expenses, department, fiscal period",
+        "columns": [
+          {
+            "name": "FinancialKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "TransactionID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "TransactionDateKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "FacilityKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "TransactionType",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": "Revenue | Expense (FactFinancials)"
+          },
+          {
+            "name": "Department",
+            "type": "varchar(50)",
+            "nullable": true,
+            "description": "Clinical or administrative department name"
+          },
+          {
+            "name": "CostCenter",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "GLAccount",
+            "type": "varchar(50)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "Description",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "Amount",
+            "type": "decimal(15,2)",
+            "nullable": false,
+            "description": "Financial transaction amount"
+          },
+          {
+            "name": "FiscalYear",
+            "type": "smallint",
+            "nullable": true,
+            "description": "Fiscal year (same as calendar year in this dataset)"
+          },
+          {
+            "name": "FiscalQuarter",
+            "type": "tinyint",
+            "nullable": true,
+            "description": "Fiscal quarter (Q1\u2013Q4)"
+          },
+          {
+            "name": "CreatedAt",
+            "type": "datetime",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "DWLoadedAt",
+            "type": "datetime",
+            "nullable": false,
+            "description": ""
+          }
+        ]
+      },
+      "dw.FactLabResults": {
+        "schema": "dw",
+        "name": "FactLabResults",
+        "type": "TABLE",
+        "description": "Lab result fact \u2014 test values, reference ranges, abnormal flags",
+        "columns": [
+          {
+            "name": "LabKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "LabID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PatientKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ProviderKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "FacilityKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "OrderDateKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ResultDateKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "TestName",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "LOINCCode",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "AbnormalFlag",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": "Normal | High | Low | Critical"
+          },
+          {
+            "name": "ResultValue",
+            "type": "decimal(10,3)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "ResultUnit",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "ReferenceRangeLow",
+            "type": "decimal(10,3)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "ReferenceRangeHigh",
+            "type": "decimal(10,3)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "DeviationFromMid",
+            "type": "numeric(16,6)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "CreatedAt",
+            "type": "datetime",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "DWLoadedAt",
+            "type": "datetime",
+            "nullable": false,
+            "description": ""
+          }
+        ]
+      },
+      "dw.FactPrescriptions": {
+        "schema": "dw",
+        "name": "FactPrescriptions",
+        "type": "TABLE",
+        "description": "Prescription fact \u2014 drug, cost to patient vs payer, refills",
+        "columns": [
+          {
+            "name": "PrescriptionKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PrescriptionID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PatientKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ProviderKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PayerKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "DrugKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PrescribedDateKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "FillDateKey",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "DaysSupply",
+            "type": "smallint",
+            "nullable": true,
+            "description": "Number of days a prescription covers"
+          },
+          {
+            "name": "Quantity",
+            "type": "smallint",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "RefillsAuthorized",
+            "type": "tinyint",
+            "nullable": true,
+            "description": "Total refills authorized by the prescriber"
+          },
+          {
+            "name": "RefillsRemaining",
+            "type": "tinyint",
+            "nullable": true,
+            "description": "Refills remaining on the prescription"
+          },
+          {
+            "name": "CostToPatient",
+            "type": "decimal(10,2)",
+            "nullable": true,
+            "description": "Patient out-of-pocket cost (copay/deductible)"
+          },
+          {
+            "name": "CostToPayer",
+            "type": "decimal(10,2)",
+            "nullable": true,
+            "description": "Amount covered by the payer"
+          },
+          {
+            "name": "TotalCost",
+            "type": "decimal(11,2)",
+            "nullable": true,
+            "description": "Total cost (CostToPatient + CostToPayer)"
+          },
+          {
+            "name": "CreatedAt",
+            "type": "datetime",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "DWLoadedAt",
+            "type": "datetime",
+            "nullable": false,
+            "description": ""
+          }
+        ]
+      }
+    },
+    "rpt": {
+      "rpt.vw_AgentUsage": {
+        "schema": "rpt",
+        "name": "vw_AgentUsage",
+        "type": "VIEW",
+        "description": "Reporting view over dw.AgentUsageLog \u2014 adds TotalTokens and date/hour columns for Power BI",
+        "columns": [
+          {
+            "name": "LogID",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "AgentName",
+            "type": "varchar(50)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "SessionID",
+            "type": "varchar(100)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "InputTokens",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "OutputTokens",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "TotalTokens",
+            "type": "int",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "ToolCalls",
+            "type": "int",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ModelID",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "RequestTimestamp",
+            "type": "datetime2",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "RequestDate",
+            "type": "date",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "RequestHour",
+            "type": "int",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "Notes",
+            "type": "varchar(500)",
+            "nullable": true,
+            "description": ""
+          }
+        ]
+      },
+      "rpt.vw_ClaimsSummary": {
+        "schema": "rpt",
+        "name": "vw_ClaimsSummary",
+        "type": "VIEW",
+        "description": "Reporting view joining FactClaims with all dims \u2014 primary claims view",
+        "columns": [
+          {
+            "name": "ClaimID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ClaimStatus",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": "Approved | Denied | Pending | Appealed"
+          },
+          {
+            "name": "DenialReason",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "BilledAmount",
+            "type": "decimal(10,2)",
+            "nullable": false,
+            "description": "Amount billed by provider to payer"
+          },
+          {
+            "name": "AllowedAmount",
+            "type": "decimal(10,2)",
+            "nullable": false,
+            "description": "Amount allowed by payer contract"
+          },
+          {
+            "name": "PaidAmount",
+            "type": "decimal(10,2)",
+            "nullable": false,
+            "description": "Amount actually paid by payer"
+          },
+          {
+            "name": "WriteOffAmount",
+            "type": "decimal(11,2)",
+            "nullable": true,
+            "description": "Contractual write-off (BilledAmount minus AllowedAmount)"
+          },
+          {
+            "name": "ServiceDate",
+            "type": "date",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ServiceYear",
+            "type": "smallint",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ServiceQuarter",
+            "type": "tinyint",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ServiceMonth",
+            "type": "varchar(10)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ServiceMonthNum",
+            "type": "tinyint",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ClaimDate",
+            "type": "date",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PatientID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PatientName",
+            "type": "varchar(201)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "Gender",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "DateOfBirth",
+            "type": "date",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "PatientAgeAtService",
+            "type": "int",
+            "nullable": true,
+            "description": "Age of patient at time of service (years)"
+          },
+          {
+            "name": "PatientState",
+            "type": "char(2)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "ProviderID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ProviderName",
+            "type": "varchar(201)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ProviderSpecialty",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "FacilityName",
+            "type": "varchar(200)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "FacilityType",
+            "type": "varchar(30)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "FacilityState",
+            "type": "char(2)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "PayerName",
+            "type": "varchar(100)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PayerType",
+            "type": "varchar(20)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PlanType",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "ICD10Code",
+            "type": "varchar(10)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "DiagnosisDescription",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "CPTCode",
+            "type": "varchar(10)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ProcedureDescription",
+            "type": "varchar(200)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "ProcedureBasePrice",
+            "type": "decimal(10,2)",
+            "nullable": true,
+            "description": ""
+          }
+        ]
+      },
+      "rpt.vw_FinancialKPIs": {
+        "schema": "rpt",
+        "name": "vw_FinancialKPIs",
+        "type": "VIEW",
+        "description": "Reporting view for financial KPIs by department and fiscal year",
+        "columns": [
+          {
+            "name": "FacilityName",
+            "type": "varchar(200)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "FacilityType",
+            "type": "varchar(30)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "FacilityState",
+            "type": "char(2)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "TransactionType",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": "Revenue | Expense (FactFinancials)"
+          },
+          {
+            "name": "Department",
+            "type": "varchar(50)",
+            "nullable": true,
+            "description": "Clinical or administrative department name"
+          },
+          {
+            "name": "GLAccount",
+            "type": "varchar(50)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "FiscalYear",
+            "type": "smallint",
+            "nullable": true,
+            "description": "Fiscal year (same as calendar year in this dataset)"
+          },
+          {
+            "name": "FiscalQuarter",
+            "type": "tinyint",
+            "nullable": true,
+            "description": "Fiscal quarter (Q1\u2013Q4)"
+          },
+          {
+            "name": "MonthName",
+            "type": "varchar(10)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "MonthNumber",
+            "type": "tinyint",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "TransactionDate",
+            "type": "date",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "Amount",
+            "type": "decimal(15,2)",
+            "nullable": false,
+            "description": "Financial transaction amount"
+          },
+          {
+            "name": "CostCenter",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          }
+        ]
+      },
+      "rpt.vw_LabResults": {
+        "schema": "rpt",
+        "name": "vw_LabResults",
+        "type": "VIEW",
+        "description": "Reporting view for lab results with patient/provider context",
+        "columns": [
+          {
+            "name": "LabID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "TestName",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "LOINCCode",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "ResultValue",
+            "type": "decimal(10,3)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "ResultUnit",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "ReferenceRangeLow",
+            "type": "decimal(10,3)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "ReferenceRangeHigh",
+            "type": "decimal(10,3)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "AbnormalFlag",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": "Normal | High | Low | Critical"
+          },
+          {
+            "name": "DeviationFromMid",
+            "type": "numeric(16,6)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "OrderDate",
+            "type": "date",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "OrderYear",
+            "type": "smallint",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "OrderQuarter",
+            "type": "tinyint",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ResultDate",
+            "type": "date",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PatientID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PatientName",
+            "type": "varchar(201)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "Gender",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "PatientAge",
+            "type": "int",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "PatientState",
+            "type": "char(2)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "ProviderName",
+            "type": "varchar(201)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "Specialty",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "FacilityName",
+            "type": "varchar(200)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "FacilityType",
+            "type": "varchar(30)",
+            "nullable": false,
+            "description": ""
+          }
+        ]
+      },
+      "rpt.vw_Prescriptions": {
+        "schema": "rpt",
+        "name": "vw_Prescriptions",
+        "type": "VIEW",
+        "description": "Reporting view for prescriptions with drug/patient/payer context",
+        "columns": [
+          {
+            "name": "PrescriptionID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "DaysSupply",
+            "type": "smallint",
+            "nullable": true,
+            "description": "Number of days a prescription covers"
+          },
+          {
+            "name": "Quantity",
+            "type": "smallint",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "RefillsAuthorized",
+            "type": "tinyint",
+            "nullable": true,
+            "description": "Total refills authorized by the prescriber"
+          },
+          {
+            "name": "RefillsRemaining",
+            "type": "tinyint",
+            "nullable": true,
+            "description": "Refills remaining on the prescription"
+          },
+          {
+            "name": "CostToPatient",
+            "type": "decimal(10,2)",
+            "nullable": true,
+            "description": "Patient out-of-pocket cost (copay/deductible)"
+          },
+          {
+            "name": "CostToPayer",
+            "type": "decimal(10,2)",
+            "nullable": true,
+            "description": "Amount covered by the payer"
+          },
+          {
+            "name": "TotalCost",
+            "type": "decimal(11,2)",
+            "nullable": true,
+            "description": "Total cost (CostToPatient + CostToPayer)"
+          },
+          {
+            "name": "PrescribedDate",
+            "type": "date",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PrescribedYear",
+            "type": "smallint",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PrescribedQuarter",
+            "type": "tinyint",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "FillDate",
+            "type": "date",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "DrugName",
+            "type": "varchar(100)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "NDCCode",
+            "type": "varchar(20)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "Dosage",
+            "type": "varchar(20)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "Frequency",
+            "type": "varchar(50)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "PatientID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PatientName",
+            "type": "varchar(201)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "Gender",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "PatientState",
+            "type": "char(2)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "ProviderName",
+            "type": "varchar(201)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "Specialty",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "PayerName",
+            "type": "varchar(100)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PayerType",
+            "type": "varchar(20)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "PlanType",
+            "type": "varchar(10)",
+            "nullable": true,
+            "description": ""
+          }
+        ]
+      },
+      "rpt.vw_ProviderPerformance": {
+        "schema": "rpt",
+        "name": "vw_ProviderPerformance",
+        "type": "VIEW",
+        "description": "Reporting view aggregating provider claim metrics",
+        "columns": [
+          {
+            "name": "ProviderID",
+            "type": "varchar(36)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ProviderName",
+            "type": "varchar(201)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "Specialty",
+            "type": "varchar(100)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "YearsExperience",
+            "type": "tinyint",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "FacilityName",
+            "type": "varchar(200)",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "FacilityState",
+            "type": "char(2)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "ServiceYear",
+            "type": "smallint",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "ServiceQuarter",
+            "type": "tinyint",
+            "nullable": false,
+            "description": ""
+          },
+          {
+            "name": "TotalClaims",
+            "type": "int",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "TotalBilled",
+            "type": "decimal(38,2)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "TotalPaid",
+            "type": "decimal(38,2)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "AvgClaimValue",
+            "type": "decimal(38,6)",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "DeniedClaims",
+            "type": "int",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "ApprovedClaims",
+            "type": "int",
+            "nullable": true,
+            "description": ""
+          },
+          {
+            "name": "DenialRatePct",
+            "type": "decimal(5,2)",
+            "nullable": true,
+            "description": "Percentage of claims denied for a provider"
+          }
+        ]
+      }
+    }
+  },
+  "stored_procedures": {
+    "dw.usp_ETL_LoadDimFacility": {
+      "schema": "dw",
+      "name": "usp_ETL_LoadDimFacility",
+      "definition_preview": "CREATE OR ALTER PROCEDURE dw.usp_ETL_LoadDimFacility\nAS\nBEGIN\n    SET NOCOUNT ON;\n    DECLARE @log INT, @ins INT = 0;\n\n    INSERT dw.ETLLog (Entity) VALUES ('DimFacility');\n    SET @log = SCOPE_IDENTITY();\n\n    BEGIN TRY\n        MERGE dw.DimFacility AS tgt\n        USING (\n            SELECT DISTINCT\n                facility_id, facility_name, facility_type, npi,\n                address, city, state, zip_code, phone,\n                TRY_CAST(NULLIF(bed_count,'') AS SMALLINT) AS bed_count,\n       ",
+      "source_file": "08_etl_stg_to_dw.sql"
+    },
+    "dw.usp_ETL_LoadDimPatient": {
+      "schema": "dw",
+      "name": "usp_ETL_LoadDimPatient",
+      "definition_preview": "CREATE OR ALTER PROCEDURE dw.usp_ETL_LoadDimPatient\nAS\nBEGIN\n    SET NOCOUNT ON;\n    DECLARE @log INT, @ins INT = 0, @upd INT = 0, @today DATE = CAST(GETDATE() AS DATE);\n\n    INSERT dw.ETLLog (Entity) VALUES ('DimPatient');\n    SET @log = SCOPE_IDENTITY();\n\n    BEGIN TRY\n        -- Step 1: expire records where tracked attributes changed\n        UPDATE dw.DimPatient\n        SET    ExpirationDate = DATEADD(DAY, -1, @today),\n               IsCurrent      = 0,\n               DWUpdatedAt    = GETDATE",
+      "source_file": "08_etl_stg_to_dw.sql"
+    },
+    "dw.usp_ETL_LoadDimPayer": {
+      "schema": "dw",
+      "name": "usp_ETL_LoadDimPayer",
+      "definition_preview": "CREATE OR ALTER PROCEDURE dw.usp_ETL_LoadDimPayer\nAS\nBEGIN\n    SET NOCOUNT ON;\n    DECLARE @log INT, @ins INT = 0, @upd INT = 0;\n\n    INSERT dw.ETLLog (Entity) VALUES ('DimPayer');\n    SET @log = SCOPE_IDENTITY();\n\n    BEGIN TRY\n        MERGE dw.DimPayer AS tgt\n        USING (\n            SELECT DISTINCT\n                payer_id, payer_name, payer_type, plan_name, plan_type,\n                address, city, state, zip_code, phone,\n                TRY_CAST(created_at AS DATETIME) AS created_at\n    ",
+      "source_file": "08_etl_stg_to_dw.sql"
+    },
+    "dw.usp_ETL_LoadDimProvider": {
+      "schema": "dw",
+      "name": "usp_ETL_LoadDimProvider",
+      "definition_preview": "CREATE OR ALTER PROCEDURE dw.usp_ETL_LoadDimProvider\nAS\nBEGIN\n    SET NOCOUNT ON;\n    DECLARE @log INT, @ins INT = 0;\n\n    INSERT dw.ETLLog (Entity) VALUES ('DimProvider');\n    SET @log = SCOPE_IDENTITY();\n\n    BEGIN TRY\n        MERGE dw.DimProvider AS tgt\n        USING (\n            SELECT\n                s.provider_id, s.npi, s.first_name, s.last_name, s.specialty,\n                s.license_number, s.phone, s.email,\n                TRY_CAST(NULLIF(s.years_experience,'') AS TINYINT) AS years_ex",
+      "source_file": "08_etl_stg_to_dw.sql"
+    },
+    "dw.usp_ETL_LoadFactClaims": {
+      "schema": "dw",
+      "name": "usp_ETL_LoadFactClaims",
+      "definition_preview": "CREATE OR ALTER PROCEDURE dw.usp_ETL_LoadFactClaims\nAS\nBEGIN\n    SET NOCOUNT ON;\n    DECLARE @log INT, @ins INT = 0, @skip INT = 0;\n\n    INSERT dw.ETLLog (Entity) VALUES ('FactClaims');\n    SET @log = SCOPE_IDENTITY();\n\n    BEGIN TRY\n        INSERT INTO dw.FactClaims\n            (ClaimID, PatientKey, ProviderKey, FacilityKey, PayerKey,\n             ServiceDateKey, ClaimDateKey, DiagnosisKey, ProcedureKey,\n             BilledAmount, AllowedAmount, PaidAmount,\n             ClaimStatus, DenialReaso",
+      "source_file": "08_etl_stg_to_dw.sql"
+    },
+    "dw.usp_ETL_LoadFactFinancials": {
+      "schema": "dw",
+      "name": "usp_ETL_LoadFactFinancials",
+      "definition_preview": "CREATE OR ALTER PROCEDURE dw.usp_ETL_LoadFactFinancials\nAS\nBEGIN\n    SET NOCOUNT ON;\n    DECLARE @log INT, @ins INT = 0;\n\n    INSERT dw.ETLLog (Entity) VALUES ('FactFinancials');\n    SET @log = SCOPE_IDENTITY();\n\n    BEGIN TRY\n        INSERT INTO dw.FactFinancials\n            (TransactionID, TransactionDateKey, FacilityKey,\n             TransactionType, Department, CostCenter, GLAccount, Description,\n             Amount, FiscalYear, FiscalQuarter, CreatedAt)\n        SELECT\n            s.transact",
+      "source_file": "08_etl_stg_to_dw.sql"
+    },
+    "dw.usp_ETL_LoadFactLabResults": {
+      "schema": "dw",
+      "name": "usp_ETL_LoadFactLabResults",
+      "definition_preview": "CREATE OR ALTER PROCEDURE dw.usp_ETL_LoadFactLabResults\nAS\nBEGIN\n    SET NOCOUNT ON;\n    DECLARE @log INT, @ins INT = 0;\n\n    INSERT dw.ETLLog (Entity) VALUES ('FactLabResults');\n    SET @log = SCOPE_IDENTITY();\n\n    BEGIN TRY\n        INSERT INTO dw.FactLabResults\n            (LabID, PatientKey, ProviderKey, FacilityKey,\n             OrderDateKey, ResultDateKey,\n             TestName, LOINCCode, AbnormalFlag,\n             ResultValue, ResultUnit, ReferenceRangeLow, ReferenceRangeHigh,\n          ",
+      "source_file": "08_etl_stg_to_dw.sql"
+    },
+    "dw.usp_ETL_LoadFactPrescriptions": {
+      "schema": "dw",
+      "name": "usp_ETL_LoadFactPrescriptions",
+      "definition_preview": "CREATE OR ALTER PROCEDURE dw.usp_ETL_LoadFactPrescriptions\nAS\nBEGIN\n    SET NOCOUNT ON;\n    DECLARE @log INT, @ins INT = 0;\n\n    INSERT dw.ETLLog (Entity) VALUES ('FactPrescriptions');\n    SET @log = SCOPE_IDENTITY();\n\n    BEGIN TRY\n        INSERT INTO dw.FactPrescriptions\n            (PrescriptionID, PatientKey, ProviderKey, PayerKey, DrugKey,\n             PrescribedDateKey, FillDateKey,\n             DaysSupply, Quantity, RefillsAuthorized, RefillsRemaining,\n             CostToPatient, CostToPa",
+      "source_file": "08_etl_stg_to_dw.sql"
+    },
+    "dw.usp_ETL_RunAll": {
+      "schema": "dw",
+      "name": "usp_ETL_RunAll",
+      "definition_preview": "CREATE OR ALTER PROCEDURE dw.usp_ETL_RunAll\nAS\nBEGIN\n    SET NOCOUNT ON;\n    EXEC dw.usp_ETL_LoadDimPayer;\n    EXEC dw.usp_ETL_LoadDimFacility;\n    EXEC dw.usp_ETL_LoadDimProvider;\n    EXEC dw.usp_ETL_LoadDimPatient;\n    EXEC dw.usp_ETL_LoadFactClaims;\n    EXEC dw.usp_ETL_LoadFactLabResults;\n    EXEC dw.usp_ETL_LoadFactPrescriptions;\n    EXEC dw.usp_ETL_LoadFactFinancials;\n\n    -- Summary of this run\n    SELECT Entity, RowsInserted, RowsUpdated, RowsSkipped, Status,\n           DATEDIFF(SECOND, R",
+      "source_file": "08_etl_stg_to_dw.sql"
+    },
+    "dw.usp_GetAbnormalLabResults": {
+      "schema": "dw",
+      "name": "usp_GetAbnormalLabResults",
+      "definition_preview": "CREATE OR ALTER PROCEDURE dw.usp_GetAbnormalLabResults\n    @PatientID  VARCHAR(36) = NULL,   -- NULL = all patients\n    @StartDate  DATE        = NULL,\n    @EndDate    DATE        = NULL,\n    @FlagFilter VARCHAR(10) = NULL,   -- High | Low | Critical | NULL=all abnormal\n    @TopN       INT         = 200\nAS\nBEGIN\n    SET NOCOUNT ON;\n\n    SELECT TOP (@TopN)\n        LabID,\n        PatientID,\n        PatientName,\n        PatientAge,\n        Gender,\n        TestName,\n        LOINCCode,\n        Result",
+      "source_file": "07_stored_procedures.sql"
+    },
+    "dw.usp_GetAgentUsage": {
+      "schema": "dw",
+      "name": "usp_GetAgentUsage",
+      "definition_preview": "CREATE OR ALTER PROCEDURE dw.usp_GetAgentUsage\n    @AgentName  VARCHAR(50)  = NULL,    -- NULL = all agents\n    @StartDate  DATE         = NULL,    -- NULL = no lower bound\n    @EndDate    DATE         = NULL,    -- NULL = no upper bound\n    @SessionID  VARCHAR(100) = NULL,    -- NULL = all sessions\n    @Rollup     BIT          = 0        -- 1 = session-level summary; 0 = per-call detail\nAS\nBEGIN\n    SET NOCOUNT ON;\n\n    IF @Rollup = 0\n    BEGIN\n        -- Per-call detail\n        SELECT\n        ",
+      "source_file": "11_agent_usage_views.sql"
+    },
+    "dw.usp_GetClaimsSummary": {
+      "schema": "dw",
+      "name": "usp_GetClaimsSummary",
+      "definition_preview": "CREATE OR ALTER PROCEDURE dw.usp_GetClaimsSummary\n    @StartDate      DATE         = NULL,\n    @EndDate        DATE         = NULL,\n    @PayerType      VARCHAR(20)  = NULL,   -- Commercial | Medicare | Medicaid | Self-Pay | NULL=all\n    @ClaimStatus    VARCHAR(20)  = NULL,   -- Approved | Denied | Pending | Appealed | NULL=all\n    @State          CHAR(2)      = NULL,\n    @TopN           INT          = 100\nAS\nBEGIN\n    SET NOCOUNT ON;\n\n    SELECT TOP (@TopN)\n        ClaimID,\n        ClaimStatus,\n",
+      "source_file": "07_stored_procedures.sql"
+    },
+    "dw.usp_GetFinancialYoY": {
+      "schema": "dw",
+      "name": "usp_GetFinancialYoY",
+      "definition_preview": "CREATE OR ALTER PROCEDURE dw.usp_GetFinancialYoY\n    @StartYear  SMALLINT = NULL,\n    @EndYear    SMALLINT = NULL,\n    @FacilityID VARCHAR(36) = NULL   -- NULL = all facilities\nAS\nBEGIN\n    SET NOCOUNT ON;\n\n    SELECT\n        ff.FiscalYear,\n        ff.FiscalQuarter,\n        ff.TransactionType,\n        fac.FacilityName,\n        fac.[State]                             AS FacilityState,\n        SUM(ff.Amount)                          AS TotalAmount,\n        COUNT(*)                                A",
+      "source_file": "07_stored_procedures.sql"
+    },
+    "dw.usp_GetPatientTimeline": {
+      "schema": "dw",
+      "name": "usp_GetPatientTimeline",
+      "definition_preview": "CREATE OR ALTER PROCEDURE dw.usp_GetPatientTimeline\n    @PatientID  VARCHAR(36),\n    @StartDate  DATE = NULL,\n    @EndDate    DATE = NULL\nAS\nBEGIN\n    SET NOCOUNT ON;\n\n    -- Claims\n    SELECT\n        'Claim'             AS EventType,\n        CAST(ServiceDate AS VARCHAR(12)) AS EventDate,\n        ClaimStatus         AS Status,\n        DiagnosisDescription AS Detail,\n        BilledAmount        AS Amount,\n        ProviderName,\n        FacilityName\n    FROM rpt.vw_ClaimsSummary\n    WHERE PatientID",
+      "source_file": "07_stored_procedures.sql"
+    },
+    "dw.usp_GetProviderPerformance": {
+      "schema": "dw",
+      "name": "usp_GetProviderPerformance",
+      "definition_preview": "CREATE OR ALTER PROCEDURE dw.usp_GetProviderPerformance\n    @Year       SMALLINT    = NULL,\n    @Specialty  VARCHAR(100)= NULL,\n    @State      CHAR(2)     = NULL,\n    @TopN       INT         = 50\nAS\nBEGIN\n    SET NOCOUNT ON;\n\n    SELECT TOP (@TopN)\n        ProviderName,\n        Specialty,\n        FacilityName,\n        FacilityState,\n        ServiceYear,\n        ServiceQuarter,\n        TotalClaims,\n        TotalBilled,\n        TotalPaid,\n        AvgClaimValue,\n        DeniedClaims,\n        Appro",
+      "source_file": "07_stored_procedures.sql"
+    }
+  },
+  "etl_procedures": {},
+  "views_sql": {
+    "rpt.vw_ClaimsSummary": {
+      "source_file": "06_rpt_views.sql",
+      "definition_preview": "CREATE OR ALTER VIEW rpt.vw_ClaimsSummary AS\nSELECT\n    fc.ClaimID,\n    fc.ClaimStatus,\n    fc.DenialReason,\n    fc.BilledAmount,\n    fc.AllowedAmount,\n    fc.PaidAmount,\n    fc.WriteOffAmount,\n\n    -- Service date\n    sd.FullDate        AS ServiceDate,\n    sd.[Year]          AS ServiceYear,\n    sd.Quarter         AS ServiceQuarter,\n    sd.MonthName       AS ServiceMonth,\n    sd.MonthNumber     AS ServiceMonthNum,\n\n    -- Claim date\n    cd.FullDate        AS ClaimDate,\n\n    -- Patient\n    pat.PatientID,\n    pat.FullName       AS PatientName,\n    pat.Gender,\n    pat.DateOfBirth,\n    DATEDIFF(YEAR, pat.DateOfBirth, sd.FullDate) AS PatientAgeAtService,\n    pat.[State]        AS PatientState,\n\n    -- Provider\n    prv.ProviderID,\n    prv.FullName       AS ProviderName,\n    prv.Specialty      AS"
+    },
+    "rpt.vw_FinancialKPIs": {
+      "source_file": "06_rpt_views.sql",
+      "definition_preview": "CREATE OR ALTER VIEW rpt.vw_FinancialKPIs AS\nSELECT\n    fac.FacilityName,\n    fac.FacilityType,\n    fac.[State]        AS FacilityState,\n    ff.TransactionType,\n    ff.Department,\n    ff.GLAccount,\n    ff.FiscalYear,\n    ff.FiscalQuarter,\n    dt.MonthName,\n    dt.MonthNumber,\n    dt.FullDate        AS TransactionDate,\n    ff.Amount,\n    ff.CostCenter\nFROM dw.FactFinancials ff\nJOIN dw.DimFacility    fac ON fac.FacilityKey        = ff.FacilityKey\nJOIN dw.DimDate        dt  ON dt.DateKey             = ff.TransactionDateKey;"
+    },
+    "rpt.vw_LabResults": {
+      "source_file": "06_rpt_views.sql",
+      "definition_preview": "CREATE OR ALTER VIEW rpt.vw_LabResults AS\nSELECT\n    fl.LabID,\n    fl.TestName,\n    fl.LOINCCode,\n    fl.ResultValue,\n    fl.ResultUnit,\n    fl.ReferenceRangeLow,\n    fl.ReferenceRangeHigh,\n    fl.AbnormalFlag,\n    fl.DeviationFromMid,\n\n    -- Dates\n    od.FullDate        AS OrderDate,\n    od.[Year]          AS OrderYear,\n    od.Quarter         AS OrderQuarter,\n    rd.FullDate        AS ResultDate,\n\n    -- Patient\n    pat.PatientID,\n    pat.FullName       AS PatientName,\n    pat.Gender,\n    DATEDIFF(YEAR, pat.DateOfBirth, od.FullDate) AS PatientAge,\n    pat.[State]        AS PatientState,\n\n    -- Provider\n    prv.FullName       AS ProviderName,\n    prv.Specialty,\n\n    -- Facility\n    fac.FacilityName,\n    fac.FacilityType\n\nFROM dw.FactLabResults      fl\nJOIN dw.DimDate             od  ON o"
+    },
+    "rpt.vw_Prescriptions": {
+      "source_file": "06_rpt_views.sql",
+      "definition_preview": "CREATE OR ALTER VIEW rpt.vw_Prescriptions AS\nSELECT\n    fp.PrescriptionID,\n    fp.DaysSupply,\n    fp.Quantity,\n    fp.RefillsAuthorized,\n    fp.RefillsRemaining,\n    fp.CostToPatient,\n    fp.CostToPayer,\n    fp.TotalCost,\n\n    -- Dates\n    pd.FullDate        AS PrescribedDate,\n    pd.[Year]          AS PrescribedYear,\n    pd.Quarter         AS PrescribedQuarter,\n    fd.FullDate        AS FillDate,\n\n    -- Drug\n    drg.DrugName,\n    drg.NDCCode,\n    drg.Dosage,\n    drg.Frequency,\n\n    -- Patient\n    pat.PatientID,\n    pat.FullName       AS PatientName,\n    pat.Gender,\n    pat.[State]        AS PatientState,\n\n    -- Provider\n    prv.FullName       AS ProviderName,\n    prv.Specialty,\n\n    -- Payer\n    pay.PayerName,\n    pay.PayerType,\n    pay.PlanType\n\nFROM dw.FactPrescriptions   fp\nJOIN dw.D"
+    },
+    "rpt.vw_ProviderPerformance": {
+      "source_file": "06_rpt_views.sql",
+      "definition_preview": "CREATE OR ALTER VIEW rpt.vw_ProviderPerformance AS\nSELECT\n    prv.ProviderID,\n    prv.FullName           AS ProviderName,\n    prv.Specialty,\n    prv.YearsExperience,\n    fac.FacilityName,\n    fac.[State]            AS FacilityState,\n    sd.[Year]              AS ServiceYear,\n    sd.Quarter             AS ServiceQuarter,\n    COUNT(fc.ClaimKey)              AS TotalClaims,\n    SUM(fc.BilledAmount)            AS TotalBilled,\n    SUM(fc.PaidAmount)              AS TotalPaid,\n    AVG(fc.BilledAmount)            AS AvgClaimValue,\n    SUM(CASE WHEN fc.ClaimStatus = 'Denied'  THEN 1 ELSE 0 END) AS DeniedClaims,\n    SUM(CASE WHEN fc.ClaimStatus = 'Approved'THEN 1 ELSE 0 END) AS ApprovedClaims,\n    CAST(\n        SUM(CASE WHEN fc.ClaimStatus = 'Denied' THEN 1.0 ELSE 0 END)\n        / NULLIF(COUNT(fc.C"
+    },
+    "rpt.vw_AgentUsage": {
+      "source_file": "11_agent_usage_views.sql",
+      "definition_preview": "CREATE OR ALTER VIEW rpt.vw_AgentUsage AS\nSELECT\n    LogID,\n    AgentName,\n    SessionID,\n    InputTokens,\n    OutputTokens,\n    InputTokens + OutputTokens          AS TotalTokens,\n    ToolCalls,\n    ModelID,\n    RequestTimestamp,\n    CAST(RequestTimestamp AS DATE)      AS RequestDate,\n    DATEPART(HOUR, RequestTimestamp)    AS RequestHour,\n    Notes\nFROM dw.AgentUsageLog;"
+    }
+  }
+}

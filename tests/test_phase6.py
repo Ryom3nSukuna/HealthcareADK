@@ -31,11 +31,11 @@ def _no_real_cache():
     agents.orchestrator (the importing module's namespace), not engine.cache. Applies
     to every test so none of them hit a real DB or load the real embedding model
     through any cache layer."""
-    with patch("agents.orchestrator.cache_get", return_value=None), \
-         patch("agents.orchestrator.cache_set"), \
-         patch("agents.orchestrator.cache_invalidate"), \
-         patch("agents.orchestrator.cache_get_semantic", return_value=None), \
-         patch("agents.orchestrator.verify_equivalence", return_value=False):
+    with patch("client.agents.orchestrator.cache_get", return_value=None), \
+         patch("client.agents.orchestrator.cache_set"), \
+         patch("client.agents.orchestrator.cache_invalidate"), \
+         patch("client.agents.orchestrator.cache_get_semantic", return_value=None), \
+         patch("client.agents.orchestrator.verify_equivalence", return_value=False):
         yield
 
 
@@ -102,11 +102,11 @@ class TestSingleAgentRouting:
             "| PayerType | DenialRate |\n|---|---|\n| Medicare | 12.3% |"
         )
 
-        with patch("agents.orchestrator.Anthropic",
+        with patch("client.agents.orchestrator.Anthropic",
                    return_value=_mock_client(routing, agent_answer)):
             with patch("engine.budget_tracker.remaining", return_value=19_000):
                 with patch("engine.budget_tracker.record"):
-                    from agents.orchestrator import run
+                    from client.agents.orchestrator import run
                     result = run(
                         "What is the denial rate for Medicare claims?",
                         session_id="t1-claims",
@@ -123,11 +123,11 @@ class TestSingleAgentRouting:
             "| FiscalYear | Revenue | Expense |\n|---|---|---|\n| 2024 | $5M | $4M |"
         )
 
-        with patch("agents.orchestrator.Anthropic",
+        with patch("client.agents.orchestrator.Anthropic",
                    return_value=_mock_client(routing, agent_answer)):
             with patch("engine.budget_tracker.remaining", return_value=19_000):
                 with patch("engine.budget_tracker.record"):
-                    from agents.orchestrator import run
+                    from client.agents.orchestrator import run
                     result = run(
                         "Show total revenue vs expenses for 2024.",
                         session_id="t1-financial",
@@ -153,11 +153,11 @@ class TestMultiHopDispatch:
         fin_answer = _text_response("Net margin for 2024 was 18.4%.")
         rpt_answer = _text_response("Power BI dataset refresh triggered successfully.")
 
-        with patch("agents.orchestrator.Anthropic",
+        with patch("client.agents.orchestrator.Anthropic",
                    return_value=_mock_client(routing, fin_answer, rpt_answer)):
             with patch("engine.budget_tracker.remaining", return_value=19_000):
                 with patch("engine.budget_tracker.record"):
-                    from agents.orchestrator import run
+                    from client.agents.orchestrator import run
                     result = run(
                         "Show the net margin trend and refresh the Power BI dashboard.",
                         session_id="t2-multihop",
@@ -173,11 +173,11 @@ class TestMultiHopDispatch:
         resp_a = _text_response("Claims result.")
         resp_b = _text_response("Clinical result.")
 
-        with patch("agents.orchestrator.Anthropic",
+        with patch("client.agents.orchestrator.Anthropic",
                    return_value=_mock_client(routing, resp_a, resp_b)):
             with patch("engine.budget_tracker.remaining", return_value=19_000):
                 with patch("engine.budget_tracker.record"):
-                    from agents.orchestrator import run
+                    from client.agents.orchestrator import run
                     result = run(
                         "Show claims denial rates and abnormal lab trends.",
                         session_id="t2-separator",
@@ -202,10 +202,10 @@ class TestBudgetEscalation:
         routing = _routing_response(["ClaimsAgent"])
 
         client = _mock_client(routing)
-        with patch("agents.orchestrator.Anthropic", return_value=client):
+        with patch("client.agents.orchestrator.Anthropic", return_value=client):
             with patch("engine.budget_tracker.remaining",
                        return_value=MIN_BUDGET_THRESHOLD - 1):
-                from agents.orchestrator import run
+                from client.agents.orchestrator import run
                 result = run(
                     "What is the denial rate for Medicare claims?",
                     session_id="t3-budget-exhausted",
@@ -224,12 +224,12 @@ class TestBudgetEscalation:
         routing = _routing_response(["ClaimsAgent"])
         agent_answer = _text_response("Denial rate: 14.2%")
 
-        with patch("agents.orchestrator.Anthropic",
+        with patch("client.agents.orchestrator.Anthropic",
                    return_value=_mock_client(routing, agent_answer)):
             with patch("engine.budget_tracker.remaining",
                        return_value=MIN_BUDGET_THRESHOLD + 5_000):
                 with patch("engine.budget_tracker.record"):
-                    from agents.orchestrator import run
+                    from client.agents.orchestrator import run
                     result = run(
                         "What is the denial rate?",
                         session_id="t3-budget-ok",
@@ -350,8 +350,8 @@ class TestToolIsolation:
         """ClaimsAgent's allowed_tools are SQL-only.
         A Claude request for 'read_file' must return 'not available'."""
         from engine.base import run_agent
-        from agents.loader import load_config
-        from agents.tools.sql_tools import build_tools
+        from client.agents.loader import load_config
+        from client.agents.tools.sql_tools import build_tools
 
         config = load_config("claims_agent")
         tools = build_tools(config["allowed_tools"], config["db_login"])
@@ -377,9 +377,9 @@ class TestToolIsolation:
     def test_etl_agent_cannot_use_file_tool(self):
         """ETLAgent's allowed_tools are shell + SQL only — write_file must be blocked."""
         from engine.base import run_agent
-        from agents.loader import load_config
-        from agents.tools.shell_tools import build_tools as build_shell_tools
-        from agents.tools.sql_tools import build_tools as build_sql_tools
+        from client.agents.loader import load_config
+        from client.agents.tools.shell_tools import build_tools as build_shell_tools
+        from client.agents.tools.sql_tools import build_tools as build_sql_tools
 
         config = load_config("etl_agent")
         allowed = config["allowed_tools"]
@@ -404,10 +404,10 @@ class TestToolIsolation:
     def test_reporting_agent_cannot_use_shell_etl_tool(self):
         """ReportingAgent cannot invoke run_ssis_package (shell ETL tool)."""
         from engine.base import run_agent
-        from agents.loader import load_config
-        from agents.tools.file_tools import build_tools as build_file_tools
-        from agents.tools.shell_tools import build_tools as build_shell_tools
-        from agents.tools.sql_tools import build_tools as build_sql_tools
+        from client.agents.loader import load_config
+        from client.agents.tools.file_tools import build_tools as build_file_tools
+        from client.agents.tools.shell_tools import build_tools as build_shell_tools
+        from client.agents.tools.sql_tools import build_tools as build_sql_tools
 
         config = load_config("reporting_agent")
         allowed = config["allowed_tools"]
@@ -446,11 +446,11 @@ class TestResponseCache:
         routing = _routing_response(["ClaimsAgent"], rationale="'denial rate' -> ClaimsAgent")
         client = _mock_client(routing)  # only the routing call should ever fire
 
-        with patch("agents.orchestrator.Anthropic", return_value=client):
-            with patch("agents.orchestrator.cache_get",
+        with patch("client.agents.orchestrator.Anthropic", return_value=client):
+            with patch("client.agents.orchestrator.cache_get",
                        return_value="CACHED: 14.2% denial rate") as mock_get, \
-                 patch("agents.orchestrator.cache_set") as mock_set:
-                from agents.orchestrator import run
+                 patch("client.agents.orchestrator.cache_set") as mock_set:
+                from client.agents.orchestrator import run
                 result = run("What is the denial rate for Medicare claims?", session_id="t5-cache-hit")
 
         assert result == "CACHED: 14.2% denial rate"
@@ -464,13 +464,13 @@ class TestResponseCache:
         routing = _routing_response(["ClaimsAgent"])
         agent_answer = _text_response("Denial rate: 14.2%")
 
-        with patch("agents.orchestrator.Anthropic",
+        with patch("client.agents.orchestrator.Anthropic",
                    return_value=_mock_client(routing, agent_answer)):
-            with patch("agents.orchestrator.cache_get", return_value=None), \
-                 patch("agents.orchestrator.cache_set") as mock_set:
+            with patch("client.agents.orchestrator.cache_get", return_value=None), \
+                 patch("client.agents.orchestrator.cache_set") as mock_set:
                 with patch("engine.budget_tracker.remaining", return_value=19_000):
                     with patch("engine.budget_tracker.record"):
-                        from agents.orchestrator import run
+                        from client.agents.orchestrator import run
                         result = run("What is the denial rate?", session_id="t5-cache-miss")
 
         assert "denial" in result.lower()
@@ -493,10 +493,10 @@ class TestSemanticCache:
         routing = _routing_response(["ClaimsAgent"])
         client = _mock_client(routing)
 
-        with patch("agents.orchestrator.Anthropic", return_value=client):
-            with patch("agents.orchestrator.cache_get", return_value="EXACT HIT"), \
-                 patch("agents.orchestrator.cache_get_semantic") as mock_semantic:
-                from agents.orchestrator import run
+        with patch("client.agents.orchestrator.Anthropic", return_value=client):
+            with patch("client.agents.orchestrator.cache_get", return_value="EXACT HIT"), \
+                 patch("client.agents.orchestrator.cache_get_semantic") as mock_semantic:
+                from client.agents.orchestrator import run
                 result = run("What is the denial rate?", session_id="t6-exact-skips-semantic")
 
         assert result == "EXACT HIT"
@@ -506,13 +506,13 @@ class TestSemanticCache:
         routing = _routing_response(["FinancialAgent"])
         client = _mock_client(routing)  # only the routing call should ever fire
 
-        with patch("agents.orchestrator.Anthropic", return_value=client):
-            with patch("agents.orchestrator.cache_get", return_value=None), \
-                 patch("agents.orchestrator.cache_get_semantic",
+        with patch("client.agents.orchestrator.Anthropic", return_value=client):
+            with patch("client.agents.orchestrator.cache_get", return_value=None), \
+                 patch("client.agents.orchestrator.cache_get_semantic",
                        return_value=("Total payments: $4.2M", "total payments made in ohio")), \
-                 patch("agents.orchestrator.verify_equivalence", return_value=True) as mock_verify, \
-                 patch("agents.orchestrator.cache_set") as mock_set:
-                from agents.orchestrator import run
+                 patch("client.agents.orchestrator.verify_equivalence", return_value=True) as mock_verify, \
+                 patch("client.agents.orchestrator.cache_set") as mock_set:
+                from client.agents.orchestrator import run
                 result = run("total payments made in OH", session_id="t6-semantic-hit")
 
         assert "Total payments: $4.2M" in result
@@ -525,16 +525,16 @@ class TestSemanticCache:
         routing = _routing_response(["FinancialAgent"])
         agent_answer = _text_response("Total payments NOT in Ohio: $9.1M")
 
-        with patch("agents.orchestrator.Anthropic",
+        with patch("client.agents.orchestrator.Anthropic",
                    return_value=_mock_client(routing, agent_answer)):
-            with patch("agents.orchestrator.cache_get", return_value=None), \
-                 patch("agents.orchestrator.cache_get_semantic",
+            with patch("client.agents.orchestrator.cache_get", return_value=None), \
+                 patch("client.agents.orchestrator.cache_get_semantic",
                        return_value=("Total payments: $4.2M", "total payments made in ohio")), \
-                 patch("agents.orchestrator.verify_equivalence", return_value=False), \
-                 patch("agents.orchestrator.cache_set") as mock_set:
+                 patch("client.agents.orchestrator.verify_equivalence", return_value=False), \
+                 patch("client.agents.orchestrator.cache_set") as mock_set:
                 with patch("engine.budget_tracker.remaining", return_value=19_000):
                     with patch("engine.budget_tracker.record"):
-                        from agents.orchestrator import run
+                        from client.agents.orchestrator import run
                         result = run("total payments NOT in ohio", session_id="t6-semantic-rejected")
 
         assert "NOT in Ohio" in result
@@ -544,14 +544,14 @@ class TestSemanticCache:
         routing = _routing_response(["FinancialAgent"])
         agent_answer = _text_response("Total payments: $4.2M")
 
-        with patch("agents.orchestrator.Anthropic",
+        with patch("client.agents.orchestrator.Anthropic",
                    return_value=_mock_client(routing, agent_answer)):
-            with patch("agents.orchestrator.cache_get", return_value=None), \
-                 patch("agents.orchestrator.cache_get_semantic", return_value=None), \
-                 patch("agents.orchestrator.cache_set") as mock_set:
+            with patch("client.agents.orchestrator.cache_get", return_value=None), \
+                 patch("client.agents.orchestrator.cache_get_semantic", return_value=None), \
+                 patch("client.agents.orchestrator.cache_set") as mock_set:
                 with patch("engine.budget_tracker.remaining", return_value=19_000):
                     with patch("engine.budget_tracker.record"):
-                        from agents.orchestrator import run
+                        from client.agents.orchestrator import run
                         result = run("total payments made in ohio", session_id="t6-no-candidate")
 
         assert "4.2M" in result

@@ -27,8 +27,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 @pytest.fixture(autouse=True)
 def _no_real_cache():
     """orchestrator.py binds cache_get/cache_set/cache_invalidate/cache_get_semantic/
-    verify_equivalence via `from agents.cache import ...`, so they must be patched on
-    agents.orchestrator (the importing module's namespace), not agents.cache. Applies
+    verify_equivalence via `from engine.cache import ...`, so they must be patched on
+    agents.orchestrator (the importing module's namespace), not engine.cache. Applies
     to every test so none of them hit a real DB or load the real embedding model
     through any cache layer."""
     with patch("agents.orchestrator.cache_get", return_value=None), \
@@ -104,8 +104,8 @@ class TestSingleAgentRouting:
 
         with patch("agents.orchestrator.Anthropic",
                    return_value=_mock_client(routing, agent_answer)):
-            with patch("agents.budget_tracker.remaining", return_value=19_000):
-                with patch("agents.budget_tracker.record"):
+            with patch("engine.budget_tracker.remaining", return_value=19_000):
+                with patch("engine.budget_tracker.record"):
                     from agents.orchestrator import run
                     result = run(
                         "What is the denial rate for Medicare claims?",
@@ -125,8 +125,8 @@ class TestSingleAgentRouting:
 
         with patch("agents.orchestrator.Anthropic",
                    return_value=_mock_client(routing, agent_answer)):
-            with patch("agents.budget_tracker.remaining", return_value=19_000):
-                with patch("agents.budget_tracker.record"):
+            with patch("engine.budget_tracker.remaining", return_value=19_000):
+                with patch("engine.budget_tracker.record"):
                     from agents.orchestrator import run
                     result = run(
                         "Show total revenue vs expenses for 2024.",
@@ -155,8 +155,8 @@ class TestMultiHopDispatch:
 
         with patch("agents.orchestrator.Anthropic",
                    return_value=_mock_client(routing, fin_answer, rpt_answer)):
-            with patch("agents.budget_tracker.remaining", return_value=19_000):
-                with patch("agents.budget_tracker.record"):
+            with patch("engine.budget_tracker.remaining", return_value=19_000):
+                with patch("engine.budget_tracker.record"):
                     from agents.orchestrator import run
                     result = run(
                         "Show the net margin trend and refresh the Power BI dashboard.",
@@ -175,8 +175,8 @@ class TestMultiHopDispatch:
 
         with patch("agents.orchestrator.Anthropic",
                    return_value=_mock_client(routing, resp_a, resp_b)):
-            with patch("agents.budget_tracker.remaining", return_value=19_000):
-                with patch("agents.budget_tracker.record"):
+            with patch("engine.budget_tracker.remaining", return_value=19_000):
+                with patch("engine.budget_tracker.record"):
                     from agents.orchestrator import run
                     result = run(
                         "Show claims denial rates and abnormal lab trends.",
@@ -197,13 +197,13 @@ class TestBudgetEscalation:
     returns an escalation message and does not call the domain agent."""
 
     def test_exhausted_budget_blocks_dispatch(self):
-        from agents.budget_tracker import MIN_BUDGET_THRESHOLD
+        from engine.budget_tracker import MIN_BUDGET_THRESHOLD
 
         routing = _routing_response(["ClaimsAgent"])
 
         client = _mock_client(routing)
         with patch("agents.orchestrator.Anthropic", return_value=client):
-            with patch("agents.budget_tracker.remaining",
+            with patch("engine.budget_tracker.remaining",
                        return_value=MIN_BUDGET_THRESHOLD - 1):
                 from agents.orchestrator import run
                 result = run(
@@ -219,16 +219,16 @@ class TestBudgetEscalation:
         assert "DenialRate" not in result
 
     def test_sufficient_budget_dispatches_normally(self):
-        from agents.budget_tracker import MIN_BUDGET_THRESHOLD
+        from engine.budget_tracker import MIN_BUDGET_THRESHOLD
 
         routing = _routing_response(["ClaimsAgent"])
         agent_answer = _text_response("Denial rate: 14.2%")
 
         with patch("agents.orchestrator.Anthropic",
                    return_value=_mock_client(routing, agent_answer)):
-            with patch("agents.budget_tracker.remaining",
+            with patch("engine.budget_tracker.remaining",
                        return_value=MIN_BUDGET_THRESHOLD + 5_000):
-                with patch("agents.budget_tracker.record"):
+                with patch("engine.budget_tracker.record"):
                     from agents.orchestrator import run
                     result = run(
                         "What is the denial rate?",
@@ -261,7 +261,7 @@ class TestMidDispatchBudget:
         """First response is tool_use and burns > budget tokens — loop must stop
         before a second API call."""
         from anthropic import Anthropic
-        from agents._base import run_agent
+        from engine.base import run_agent
 
         tool_resp = _tool_use_response(
             "execute_query", {"sql": "SELECT 1"}, tool_id="tu_mid_budget"
@@ -278,7 +278,7 @@ class TestMidDispatchBudget:
             "fn": lambda **_: "[]",
         }]
 
-        with patch("agents._base._record_usage") as mock_record:
+        with patch("engine.base._record_usage") as mock_record:
             result = run_agent(
                 self._minimal_config(budget=1000),
                 tools,
@@ -297,7 +297,7 @@ class TestMidDispatchBudget:
 
     def test_does_not_halt_when_within_budget(self):
         """Normal dispatch completing within budget reaches end_turn normally."""
-        from agents._base import run_agent
+        from engine.base import run_agent
 
         tool_resp = _tool_use_response("execute_query", {"sql": "SELECT 1"})
         # 150 + 60 = 210 tokens, well under a 1000-token budget
@@ -311,7 +311,7 @@ class TestMidDispatchBudget:
             "fn": lambda **_: "[]",
         }]
 
-        with patch("agents._base._record_usage"):
+        with patch("engine.base._record_usage"):
             result = run_agent(
                 self._minimal_config(budget=1000),
                 tools,
@@ -349,7 +349,8 @@ class TestToolIsolation:
     def test_claims_agent_cannot_use_file_tool(self):
         """ClaimsAgent's allowed_tools are SQL-only.
         A Claude request for 'read_file' must return 'not available'."""
-        from agents._base import run_agent, load_config
+        from engine.base import run_agent
+        from agents.loader import load_config
         from agents.tools.sql_tools import build_tools
 
         config = load_config("claims_agent")
@@ -364,7 +365,7 @@ class TestToolIsolation:
         final = _text_response("I cannot access file tools. I'll use SQL instead.")
 
         client = _mock_client(tool_req, final)
-        with patch("agents.budget_tracker.record"):
+        with patch("engine.budget_tracker.record"):
             run_agent(config, tools, "Read the TMDL measures file.",
                       "t4-file-claim", client)
 
@@ -375,7 +376,8 @@ class TestToolIsolation:
 
     def test_etl_agent_cannot_use_file_tool(self):
         """ETLAgent's allowed_tools are shell + SQL only — write_file must be blocked."""
-        from agents._base import run_agent, load_config
+        from engine.base import run_agent
+        from agents.loader import load_config
         from agents.tools.shell_tools import build_tools as build_shell_tools
         from agents.tools.sql_tools import build_tools as build_sql_tools
 
@@ -390,7 +392,7 @@ class TestToolIsolation:
         final = _text_response("I cannot write files. That tool is not available to me.")
 
         client = _mock_client(tool_req, final)
-        with patch("agents.budget_tracker.record"):
+        with patch("engine.budget_tracker.record"):
             run_agent(config, tools, "Write a SQL script to drop the claims table.",
                       "t4-file-etl", client)
 
@@ -401,7 +403,8 @@ class TestToolIsolation:
 
     def test_reporting_agent_cannot_use_shell_etl_tool(self):
         """ReportingAgent cannot invoke run_ssis_package (shell ETL tool)."""
-        from agents._base import run_agent, load_config
+        from engine.base import run_agent
+        from agents.loader import load_config
         from agents.tools.file_tools import build_tools as build_file_tools
         from agents.tools.shell_tools import build_tools as build_shell_tools
         from agents.tools.sql_tools import build_tools as build_sql_tools
@@ -421,7 +424,7 @@ class TestToolIsolation:
         final = _text_response("That tool is not available to me.")
 
         client = _mock_client(tool_req, final)
-        with patch("agents.budget_tracker.record"):
+        with patch("engine.budget_tracker.record"):
             run_agent(config, tools, "Run the master SSIS package.",
                       "t4-ssis-reporting", client)
 
@@ -465,8 +468,8 @@ class TestResponseCache:
                    return_value=_mock_client(routing, agent_answer)):
             with patch("agents.orchestrator.cache_get", return_value=None), \
                  patch("agents.orchestrator.cache_set") as mock_set:
-                with patch("agents.budget_tracker.remaining", return_value=19_000):
-                    with patch("agents.budget_tracker.record"):
+                with patch("engine.budget_tracker.remaining", return_value=19_000):
+                    with patch("engine.budget_tracker.record"):
                         from agents.orchestrator import run
                         result = run("What is the denial rate?", session_id="t5-cache-miss")
 
@@ -529,8 +532,8 @@ class TestSemanticCache:
                        return_value=("Total payments: $4.2M", "total payments made in ohio")), \
                  patch("agents.orchestrator.verify_equivalence", return_value=False), \
                  patch("agents.orchestrator.cache_set") as mock_set:
-                with patch("agents.budget_tracker.remaining", return_value=19_000):
-                    with patch("agents.budget_tracker.record"):
+                with patch("engine.budget_tracker.remaining", return_value=19_000):
+                    with patch("engine.budget_tracker.record"):
                         from agents.orchestrator import run
                         result = run("total payments NOT in ohio", session_id="t6-semantic-rejected")
 
@@ -546,8 +549,8 @@ class TestSemanticCache:
             with patch("agents.orchestrator.cache_get", return_value=None), \
                  patch("agents.orchestrator.cache_get_semantic", return_value=None), \
                  patch("agents.orchestrator.cache_set") as mock_set:
-                with patch("agents.budget_tracker.remaining", return_value=19_000):
-                    with patch("agents.budget_tracker.record"):
+                with patch("engine.budget_tracker.remaining", return_value=19_000):
+                    with patch("engine.budget_tracker.record"):
                         from agents.orchestrator import run
                         result = run("total payments made in ohio", session_id="t6-no-candidate")
 
@@ -556,7 +559,7 @@ class TestSemanticCache:
 
 
 class TestSemanticCacheScoring:
-    """Pure cosine-similarity math in agents.cache.cache_get_semantic() — hand-crafted
+    """Pure cosine-similarity math in engine.cache.cache_get_semantic() — hand-crafted
     vectors, no real model or DB. Tests the function directly (not via orchestrator),
     so the autouse _no_real_cache patch doesn't apply here."""
 
@@ -569,7 +572,7 @@ class TestSemanticCacheScoring:
         return conn
 
     def test_best_candidate_above_floor_is_returned(self):
-        from agents.cache import cache_get_semantic
+        from engine.cache import cache_get_semantic
 
         query_vec = np.array([1.0, 0.0], dtype=np.float32)
         close_vec = np.array([0.99, 0.14107], dtype=np.float32)  # cos ~0.99, above floor
@@ -580,27 +583,27 @@ class TestSemanticCacheScoring:
             ("a very similar question", "close response", close_vec.tobytes()),
         ]
 
-        with patch("agents.cache._get_conn", return_value=self._mock_conn(rows)), \
-             patch("agents.embeddings.embed", return_value=query_vec):
+        with patch("engine.cache._get_conn", return_value=self._mock_conn(rows)), \
+             patch("engine.embeddings.embed", return_value=query_vec):
             result = cache_get_semantic("FinancialAgent", "a similar question")
 
         assert result == ("close response", "a very similar question")
 
     def test_no_candidate_clears_floor_returns_none(self):
-        from agents.cache import cache_get_semantic
+        from engine.cache import cache_get_semantic
 
         query_vec = np.array([1.0, 0.0], dtype=np.float32)
         far_vec = np.array([0.0, 1.0], dtype=np.float32)
         rows = [("unrelated question", "unrelated response", far_vec.tobytes())]
 
-        with patch("agents.cache._get_conn", return_value=self._mock_conn(rows)), \
-             patch("agents.embeddings.embed", return_value=query_vec):
+        with patch("engine.cache._get_conn", return_value=self._mock_conn(rows)), \
+             patch("engine.embeddings.embed", return_value=query_vec):
             result = cache_get_semantic("FinancialAgent", "totally different topic")
 
         assert result is None
 
     def test_kill_switch_disables_semantic_lookup(self):
-        from agents.cache import cache_get_semantic
+        from engine.cache import cache_get_semantic
 
         with patch.dict("os.environ", {"HEALTHCAREADK_SEMANTIC_CACHE_ENABLED": "0"}):
             result = cache_get_semantic("FinancialAgent", "anything")

@@ -70,7 +70,7 @@ def cache_set(agent_name: str, query: str, response: str, ttl_minutes: int) -> N
 
     embedding_bytes = None
     try:
-        from agents.embeddings import embed
+        from engine.embeddings import embed
         embedding_bytes = np.asarray(embed(query), dtype=np.float32).tobytes()
     except Exception:
         pass
@@ -119,7 +119,7 @@ def cache_get_semantic(agent_name: str, query: str) -> tuple[str, str] | None:
         return None
 
     try:
-        from agents.embeddings import embed
+        from engine.embeddings import embed
         query_vec = np.asarray(embed(query), dtype=np.float32)
     except Exception:
         return None

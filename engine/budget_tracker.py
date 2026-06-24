@@ -2,7 +2,7 @@
 Budget tracker — logs token usage to dw.AgentUsageLog and enforces per-agent session budgets.
 
 Exports used by callers:
-  record()              → called by agents/_base.py after every Claude call
+  record()              → called by engine/base.py after every Claude call
   remaining()           → called by agents/orchestrator.py before dispatch
   session_summary()     → called by end-to-end tests / usage dashboard
   MIN_BUDGET_THRESHOLD  → imported by agents/orchestrator.py
@@ -19,7 +19,12 @@ load_dotenv()
 
 MIN_BUDGET_THRESHOLD = 2000  # escalate when tokens remaining fall below this
 
-_CONFIG_DIR = Path(__file__).parent / "config"
+# HEALTHCAREADK_AGENT_CONFIG_DIR overrides the default client-pack convention
+# that agent YAML configs live at <project_root>/agents/config/.
+_CONFIG_DIR = Path(os.environ.get(
+    "HEALTHCAREADK_AGENT_CONFIG_DIR",
+    str(Path(__file__).parent.parent / "agents" / "config"),
+))
 
 
 def _get_conn() -> pyodbc.Connection:

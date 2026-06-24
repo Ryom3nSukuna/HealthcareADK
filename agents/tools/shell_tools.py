@@ -25,8 +25,9 @@ _ENV = {**os.environ, "DOTNET_ROLL_FORWARD": "Major"}
 
 
 def _safe_resolve(base_dir: Path, relative_path: str) -> Path:
+    root = base_dir.resolve()
     resolved = (base_dir / relative_path).resolve()
-    if not str(resolved).startswith(str(base_dir.resolve())):
+    if resolved != root and root not in resolved.parents:
         raise ValueError(f"Path traversal blocked: {relative_path!r}")
     return resolved
 

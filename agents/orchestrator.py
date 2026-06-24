@@ -16,7 +16,7 @@ import yaml
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
-from agents.cache import cache_get, cache_get_semantic, cache_invalidate, cache_set, verify_equivalence
+from engine.cache import cache_get, cache_get_semantic, cache_invalidate, cache_set, verify_equivalence
 
 load_dotenv()
 
@@ -59,7 +59,7 @@ def _route(user_request: str, client: Anthropic) -> dict:
 def _check_budget(agent_name: str, session_id: str) -> str | None:
     """Return an escalation message if the agent's budget is exhausted, else None."""
     try:
-        from agents.budget_tracker import remaining, MIN_BUDGET_THRESHOLD
+        from engine.budget_tracker import remaining, MIN_BUDGET_THRESHOLD
         tokens_left = remaining(agent_name, session_id)
         if tokens_left < MIN_BUDGET_THRESHOLD:
             config = _load_config(f"{AGENT_MODULE_MAP[agent_name]}")

@@ -131,7 +131,6 @@ HealthcareADK/
 │   ├── phase6_design.md       ← Phase 6 architecture (multi-agent, orchestrator, budget tracker)
 │   ├── phase7_design.md       ← Phase 7 architecture (prompt caching, response cache, chat frontend)
 │   ├── phase8_design.md       ← Phase 8 architecture (semantic query cache, Layer 3)
-│   ├── phase9_design.md       ← Phase 9 extensibility playbook (new domain walkthrough, Admissions worked example)
 │   └── schema_kb.json         ← RAG knowledge base (tables, columns, SPs) — built by scripts/build_schema_kb.py
 ├── landing_zone/              ← Raw data drop zone
 │   ├── claims/
@@ -160,13 +159,18 @@ HealthcareADK/
 │   └── test_permissions.py    ← Integration tests: SQL Server schema permissions per agent login
 │                                 Skipped unless HEALTHCAREADK_TEST_PERMISSIONS=1
 ├── ssis/                      ← SSIS package design guides
-├── agents/
+├── engine/                    ← REUSABLE FRAMEWORK — zero domain knowledge; copy wholesale to any new client
+│   ├── base.py                ← Shared agentic loop (tool execution, iteration cap, budget recording)
+│   ├── budget_tracker.py      ← Token usage logger → dw.AgentUsageLog
+│   ├── cache.py               ← Layer 2 response cache + Layer 3 semantic cache
+│   └── embeddings.py          ← Layer 3: lazy sentence-transformers singleton, embed()
+├── agents/                    ← CLIENT-PACK — healthcare domain; replace entirely for a new client domain
 │   ├── config/                ← Agent YAML configs (system prompt, tool allowlist, schema scope, token budget)
+│   ├── loader.py              ← load_config() helper — loads YAML from agents/config/
 │   ├── tools/
 │   │   ├── sql_tools.py       ← pyodbc SQL tools + Anthropic API definitions (all SQL agents)
 │   │   ├── file_tools.py      ← File I/O tools + write guard (ReportingAgent)
 │   │   └── shell_tools.py     ← Subprocess tools: dtexec, python, pbi-tools, sqlcmd (ETL + Reporting)
-│   ├── _base.py               ← Shared agentic loop (tool execution, iteration cap, budget recording)
 │   ├── orchestrator.py        ← OrchestratorAgent: routes requests, enforces budgets, merges multi-hop results
 │   ├── claims_agent.py        ← ClaimsAgent
 │   ├── clinical_agent.py      ← ClinicalAgent
@@ -174,9 +178,6 @@ HealthcareADK/
 │   ├── reporting_agent.py     ← ReportingAgent
 │   ├── etl_agent.py           ← ETLAgent
 │   ├── provider_agent.py      ← ProviderAgent
-│   ├── budget_tracker.py      ← Token usage logger → dw.AgentUsageLog
-│   ├── cache.py               ← Layer 2 response cache (cache_get/cache_set/cache_invalidate) + Layer 3 semantic cache (cache_get_semantic/verify_equivalence)
-│   ├── embeddings.py          ← Layer 3: lazy sentence-transformers singleton, embed()
 │   └── skills/                ← Skill specs: claims-summary, financial-yoy, abnormal-labs
 ├── mcp/
 │   ├── sqlserver/             ← mcp-sqlserver (FastMCP, 9 tools) ✅ Live

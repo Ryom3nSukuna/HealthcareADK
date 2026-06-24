@@ -1,20 +1,12 @@
 """
-Shared agentic loop for all HealthcareADK domain agents.
+Shared agentic loop for all domain agents.
 Each domain agent calls run_agent() with its config and tools.
 """
 import json
-from pathlib import Path
 
-import yaml
 from anthropic import Anthropic
 
-CONFIG_DIR = Path(__file__).parent / "config"
 MAX_ITERATIONS = 20
-
-
-def load_config(name: str) -> dict:
-    with open(CONFIG_DIR / f"{name}.yaml") as f:
-        return yaml.safe_load(f)
 
 
 def _record_usage(
@@ -26,7 +18,7 @@ def _record_usage(
     cached_tokens: int = 0,
 ) -> None:
     try:
-        from agents.budget_tracker import record
+        from engine.budget_tracker import record
         record(agent_name, session_id, input_tokens, output_tokens, tool_calls, cached_tokens=cached_tokens)
     except ImportError:
         pass  # budget_tracker not yet built

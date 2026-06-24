@@ -1,4 +1,5 @@
-from agents._base import load_config, run_agent
+from engine.base import run_agent
+from agents.loader import load_config
 from agents.tools.sql_tools import build_tools
 from anthropic import Anthropic
 

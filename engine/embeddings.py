@@ -1,5 +1,5 @@
 """
-Phase 8 — local embedding model for the semantic query cache (Layer 3).
+Local embedding model for the semantic query cache (Layer 3).
 
 Lazy singleton: importing this module must never load torch/sentence-transformers,
 so unit tests that mock cache_get_semantic()/verify_equivalence() never pull in the

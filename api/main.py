@@ -3,13 +3,17 @@ HealthcareADK Chat API — FastAPI wrapper around the OrchestratorAgent.
 
 Run locally:
     uvicorn api.main:app --reload --port 8000
+
+Then open http://localhost:8000 in your browser.
 """
 import os
 import secrets
+from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from agents.orchestrator import run_with_meta
 from api.models import ChatRequest, ChatResponse
@@ -18,11 +22,12 @@ load_dotenv()
 
 app = FastAPI(title="HealthcareADK Chat API")
 
-# CORS: default covers file:// ("null") and localhost dev server.
+# CORS: UI is served from the same origin so only localhost needs to be listed.
+# "null" (file://) is intentionally dropped — no longer needed.
 # Override via HEALTHCAREADK_CORS_ORIGINS (comma-separated) for other environments.
 _raw_origins = os.environ.get(
     "HEALTHCAREADK_CORS_ORIGINS",
-    "null,http://localhost:8000,http://127.0.0.1:8000",
+    "http://localhost:8000,http://127.0.0.1:8000",
 )
 app.add_middleware(
     CORSMiddleware,
@@ -63,3 +68,8 @@ def chat(request: ChatRequest) -> ChatResponse:
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
+
+
+# Serve the chat UI at http://localhost:8000 — mount last so API routes take priority.
+_FRONTEND = Path(__file__).resolve().parent.parent / "frontend"
+app.mount("/", StaticFiles(directory=str(_FRONTEND), html=True), name="frontend")

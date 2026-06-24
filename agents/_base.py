@@ -52,6 +52,7 @@ def run_agent(
     total_output = 0
     total_cached = 0
     tool_call_count = 0
+    token_budget = int(config.get("token_budget", 20000))
 
     for _ in range(MAX_ITERATIONS):
         response = client.messages.create(
@@ -75,6 +76,16 @@ def run_agent(
             text = next((b.text for b in response.content if b.type == "text"), "")
             _record_usage(config["name"], session_id, total_input, total_output, tool_call_count, total_cached)
             return text
+
+        # Mid-dispatch budget check — fires only when more tool calls would follow.
+        # A naturally completed dispatch (end_turn above) always returns its answer.
+        if total_input + total_output > token_budget:
+            _record_usage(config["name"], session_id, total_input, total_output, tool_call_count, total_cached)
+            return (
+                f"[{config['name']}] Token budget ({token_budget:,} tokens) exceeded mid-dispatch "
+                f"({total_input + total_output:,} used). Stopping to prevent runaway spend. "
+                f"Escalate to OrchestratorAgent or retry with a narrower query."
+            )
 
         if response.stop_reason == "tool_use":
             messages.append({"role": "assistant", "content": response.content})

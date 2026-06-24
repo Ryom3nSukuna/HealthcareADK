@@ -50,7 +50,7 @@ See [CLAUDE.md](CLAUDE.md) for full agent roles, guardrails, and behavior rules.
 
 ## Project Status
 
-Phases 1–7 complete. Phase 8 (Semantic Query Cache, Layer 3) is in progress — see [docs/phase8_design.md](docs/phase8_design.md). Phase 9 documents the playbook for adding a new domain end-to-end (e.g. Admissions) — see [docs/phase9_design.md](docs/phase9_design.md). See [docs/plan.md](docs/plan.md) for the detailed phase breakdown.
+Phases 1–8 complete. Phase 8 (Semantic Query Cache, Layer 3) — see [docs/phase8_design.md](docs/phase8_design.md). Phase 9 documents the playbook for adding a new domain end-to-end (e.g. Admissions) — see [docs/phase9_design.md](docs/phase9_design.md). See [docs/plan.md](docs/plan.md) for the detailed phase breakdown.
 
 ---
 
@@ -71,7 +71,7 @@ Phases 1–7 complete. Phase 8 (Semantic Query Cache, Layer 3) is in progress �
 pip install -r requirements.txt
 ```
 
-> **Note (Phase 8, in progress):** `requirements.txt` includes `sentence-transformers` for the upcoming semantic query cache. It pulls in `torch`, and the first call to the embedding model (`all-MiniLM-L6-v2`) downloads it (~80MB) to your local Hugging Face cache — needs internet access once.
+> **Note (Phase 8):** `requirements.txt` includes `sentence-transformers` for the semantic query cache (Layer 3). It pulls in `torch`, and the first call to the embedding model (`all-MiniLM-L6-v2`) downloads it (~80MB) to your local Hugging Face cache — needs internet access once.
 
 ### 2. Create a `.env` file
 
@@ -147,7 +147,7 @@ Then apply users, GRANTs, and DENYs in SSMS:
 sql/10_agent_permissions.sql
 sql/11_agent_usage_views.sql
 sql/12_query_cache.sql
-sql/13_semantic_cache.sql   # Phase 8, in progress
+sql/13_semantic_cache.sql
 ```
 
 ### 5. Generate synthetic data and run ETL
@@ -201,6 +201,6 @@ Each test class maps to one agent login (`agent_claims`, `agent_clinical`, etc.)
 | BI | Power BI |
 | AI | Claude (Anthropic) |
 | Agent Framework | Claude Agent SDK + MCP |
-| Caching | Anthropic prompt caching (`cache_control`) + SQL Server response cache (`dw.QueryCache`) |
+| Caching | Anthropic prompt caching (`cache_control`) + SQL Server response cache (`dw.QueryCache`) + local-embedding semantic cache (`sentence-transformers` + Claude Haiku verification) |
 | Chat API / Frontend | FastAPI + vanilla HTML/JS (marked.js + DOMPurify) |
 | Dev Environment | VS Code + Claude Code |

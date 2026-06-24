@@ -17,6 +17,7 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import numpy as np
 import pytest
 
 # Ensure project root is on sys.path when pytest is run from any directory
@@ -25,13 +26,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 @pytest.fixture(autouse=True)
 def _no_real_cache():
-    """orchestrator.py binds cache_get/cache_set/cache_invalidate via `from agents.cache
-    import ...`, so they must be patched on agents.orchestrator (the importing module's
-    namespace), not agents.cache. Applies to every test so none of them hit a real DB
-    through the Layer 2 cache check."""
+    """orchestrator.py binds cache_get/cache_set/cache_invalidate/cache_get_semantic/
+    verify_equivalence via `from agents.cache import ...`, so they must be patched on
+    agents.orchestrator (the importing module's namespace), not agents.cache. Applies
+    to every test so none of them hit a real DB or load the real embedding model
+    through any cache layer."""
     with patch("agents.orchestrator.cache_get", return_value=None), \
          patch("agents.orchestrator.cache_set"), \
-         patch("agents.orchestrator.cache_invalidate"):
+         patch("agents.orchestrator.cache_invalidate"), \
+         patch("agents.orchestrator.cache_get_semantic", return_value=None), \
+         patch("agents.orchestrator.verify_equivalence", return_value=False):
         yield
 
 
@@ -236,6 +240,92 @@ class TestBudgetEscalation:
 
 
 # ---------------------------------------------------------------------------
+# 3b. Mid-dispatch budget enforcement (_base.py)
+# ---------------------------------------------------------------------------
+
+class TestMidDispatchBudget:
+    """A single dispatch that accumulates tokens exceeding the per-agent budget
+    mid-loop should halt before the next tool iteration and return an escalation
+    message, not silently run to completion."""
+
+    @staticmethod
+    def _minimal_config(budget: int = 1000) -> dict:
+        return {
+            "name": "ClaimsAgent",
+            "model": "claude-sonnet-4-6",
+            "system_prompt": "test prompt",
+            "token_budget": budget,
+        }
+
+    def test_halts_when_budget_exceeded_mid_tool_loop(self):
+        """First response is tool_use and burns > budget tokens — loop must stop
+        before a second API call."""
+        from anthropic import Anthropic
+        from agents._base import run_agent
+
+        tool_resp = _tool_use_response(
+            "execute_query", {"sql": "SELECT 1"}, tool_id="tu_mid_budget"
+        )
+        # Make the first call exceed the 1 000-token budget
+        tool_resp.usage.input_tokens = 800
+        tool_resp.usage.output_tokens = 400  # total = 1200 > 1000
+
+        client = _mock_client(tool_resp)
+
+        tools = [{
+            "definition": {"name": "execute_query", "description": "run sql",
+                           "input_schema": {"type": "object", "properties": {}, "required": []}},
+            "fn": lambda **_: "[]",
+        }]
+
+        with patch("agents._base._record_usage") as mock_record:
+            result = run_agent(
+                self._minimal_config(budget=1000),
+                tools,
+                "test query",
+                "test-mid-budget-session",
+                client,
+            )
+
+        # Only one API call — loop stopped before making a second
+        assert client.messages.create.call_count == 1
+        # Escalation message surfaced
+        assert "budget" in result.lower()
+        assert "exceeded" in result.lower()
+        # Usage was still recorded despite the early exit
+        mock_record.assert_called_once()
+
+    def test_does_not_halt_when_within_budget(self):
+        """Normal dispatch completing within budget reaches end_turn normally."""
+        from agents._base import run_agent
+
+        tool_resp = _tool_use_response("execute_query", {"sql": "SELECT 1"})
+        # 150 + 60 = 210 tokens, well under a 1000-token budget
+        end_resp = _text_response("Result: 42")
+
+        client = _mock_client(tool_resp, end_resp)
+
+        tools = [{
+            "definition": {"name": "execute_query", "description": "run sql",
+                           "input_schema": {"type": "object", "properties": {}, "required": []}},
+            "fn": lambda **_: "[]",
+        }]
+
+        with patch("agents._base._record_usage"):
+            result = run_agent(
+                self._minimal_config(budget=1000),
+                tools,
+                "test query",
+                "test-mid-budget-ok",
+                client,
+            )
+
+        assert client.messages.create.call_count == 2
+        assert "42" in result
+        assert "budget" not in result.lower()
+
+
+# ---------------------------------------------------------------------------
 # 4. Tool isolation
 # ---------------------------------------------------------------------------
 
@@ -386,3 +476,133 @@ class TestResponseCache:
         assert args[0] == "ClaimsAgent"
         assert args[1] == "What is the denial rate?"
         assert args[3] == 30  # claims_agent.yaml cache_ttl_minutes
+
+
+# ---------------------------------------------------------------------------
+# 6. Semantic cache (Layer 3, Phase 8)
+# ---------------------------------------------------------------------------
+
+class TestSemanticCache:
+    """A semantic candidate is only ever served after a mandatory verify_equivalence()
+    check returns True — embedding similarity alone never authorizes reuse."""
+
+    def test_exact_match_hit_skips_semantic_check_entirely(self):
+        routing = _routing_response(["ClaimsAgent"])
+        client = _mock_client(routing)
+
+        with patch("agents.orchestrator.Anthropic", return_value=client):
+            with patch("agents.orchestrator.cache_get", return_value="EXACT HIT"), \
+                 patch("agents.orchestrator.cache_get_semantic") as mock_semantic:
+                from agents.orchestrator import run
+                result = run("What is the denial rate?", session_id="t6-exact-skips-semantic")
+
+        assert result == "EXACT HIT"
+        mock_semantic.assert_not_called()
+
+    def test_semantic_candidate_verified_true_returns_candidate_without_dispatch(self):
+        routing = _routing_response(["FinancialAgent"])
+        client = _mock_client(routing)  # only the routing call should ever fire
+
+        with patch("agents.orchestrator.Anthropic", return_value=client):
+            with patch("agents.orchestrator.cache_get", return_value=None), \
+                 patch("agents.orchestrator.cache_get_semantic",
+                       return_value=("Total payments: $4.2M", "total payments made in ohio")), \
+                 patch("agents.orchestrator.verify_equivalence", return_value=True) as mock_verify, \
+                 patch("agents.orchestrator.cache_set") as mock_set:
+                from agents.orchestrator import run
+                result = run("total payments made in OH", session_id="t6-semantic-hit")
+
+        assert "Total payments: $4.2M" in result
+        assert "similar question" in result.lower()
+        mock_verify.assert_called_once()
+        assert client.messages.create.call_count == 1  # routing only — domain agent never dispatched
+        mock_set.assert_not_called()  # served from cache, nothing new to write
+
+    def test_semantic_candidate_verified_false_falls_through_to_fresh_dispatch(self):
+        routing = _routing_response(["FinancialAgent"])
+        agent_answer = _text_response("Total payments NOT in Ohio: $9.1M")
+
+        with patch("agents.orchestrator.Anthropic",
+                   return_value=_mock_client(routing, agent_answer)):
+            with patch("agents.orchestrator.cache_get", return_value=None), \
+                 patch("agents.orchestrator.cache_get_semantic",
+                       return_value=("Total payments: $4.2M", "total payments made in ohio")), \
+                 patch("agents.orchestrator.verify_equivalence", return_value=False), \
+                 patch("agents.orchestrator.cache_set") as mock_set:
+                with patch("agents.budget_tracker.remaining", return_value=19_000):
+                    with patch("agents.budget_tracker.record"):
+                        from agents.orchestrator import run
+                        result = run("total payments NOT in ohio", session_id="t6-semantic-rejected")
+
+        assert "NOT in Ohio" in result
+        mock_set.assert_called_once()  # fresh dispatch result gets cached normally
+
+    def test_no_semantic_candidate_falls_through_to_fresh_dispatch(self):
+        routing = _routing_response(["FinancialAgent"])
+        agent_answer = _text_response("Total payments: $4.2M")
+
+        with patch("agents.orchestrator.Anthropic",
+                   return_value=_mock_client(routing, agent_answer)):
+            with patch("agents.orchestrator.cache_get", return_value=None), \
+                 patch("agents.orchestrator.cache_get_semantic", return_value=None), \
+                 patch("agents.orchestrator.cache_set") as mock_set:
+                with patch("agents.budget_tracker.remaining", return_value=19_000):
+                    with patch("agents.budget_tracker.record"):
+                        from agents.orchestrator import run
+                        result = run("total payments made in ohio", session_id="t6-no-candidate")
+
+        assert "4.2M" in result
+        mock_set.assert_called_once()
+
+
+class TestSemanticCacheScoring:
+    """Pure cosine-similarity math in agents.cache.cache_get_semantic() — hand-crafted
+    vectors, no real model or DB. Tests the function directly (not via orchestrator),
+    so the autouse _no_real_cache patch doesn't apply here."""
+
+    @staticmethod
+    def _mock_conn(rows):
+        conn = MagicMock()
+        conn.__enter__.return_value = conn
+        conn.__exit__.return_value = False
+        conn.execute.return_value.fetchall.return_value = rows
+        return conn
+
+    def test_best_candidate_above_floor_is_returned(self):
+        from agents.cache import cache_get_semantic
+
+        query_vec = np.array([1.0, 0.0], dtype=np.float32)
+        close_vec = np.array([0.99, 0.14107], dtype=np.float32)  # cos ~0.99, above floor
+        far_vec = np.array([0.0, 1.0], dtype=np.float32)         # cos 0.0, below floor
+
+        rows = [
+            ("a different question", "far response", far_vec.tobytes()),
+            ("a very similar question", "close response", close_vec.tobytes()),
+        ]
+
+        with patch("agents.cache._get_conn", return_value=self._mock_conn(rows)), \
+             patch("agents.embeddings.embed", return_value=query_vec):
+            result = cache_get_semantic("FinancialAgent", "a similar question")
+
+        assert result == ("close response", "a very similar question")
+
+    def test_no_candidate_clears_floor_returns_none(self):
+        from agents.cache import cache_get_semantic
+
+        query_vec = np.array([1.0, 0.0], dtype=np.float32)
+        far_vec = np.array([0.0, 1.0], dtype=np.float32)
+        rows = [("unrelated question", "unrelated response", far_vec.tobytes())]
+
+        with patch("agents.cache._get_conn", return_value=self._mock_conn(rows)), \
+             patch("agents.embeddings.embed", return_value=query_vec):
+            result = cache_get_semantic("FinancialAgent", "totally different topic")
+
+        assert result is None
+
+    def test_kill_switch_disables_semantic_lookup(self):
+        from agents.cache import cache_get_semantic
+
+        with patch.dict("os.environ", {"HEALTHCAREADK_SEMANTIC_CACHE_ENABLED": "0"}):
+            result = cache_get_semantic("FinancialAgent", "anything")
+
+        assert result is None

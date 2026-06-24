@@ -4,7 +4,7 @@
 
 Catch paraphrased repeat queries (synonyms, abbreviations, rewording) that Layer 2's exact-text-match cache misses — e.g. "total payments in ohio" vs "...in OH" — without ever risking a wrong answer served from a merely-similar cached response.
 
-**Status:** 🔄 Planned, implementation in progress. Plan approved via `EnterPlanMode` on 2026-06-21.
+**Status:** ✅ Complete and live-tested (2026-06-23). Plan approved via `EnterPlanMode` on 2026-06-21, implemented and verified against the real DB and a real Claude Haiku call.
 
 ---
 
@@ -80,10 +80,22 @@ No new GRANTs needed — `agent_orchestrator` already has SELECT/INSERT/DELETE o
 ## `agents/cache.py` — extensions
 
 - **`cache_set()`**: after the existing INSERT, also compute `embed(query)`, serialize via `np.asarray(vec, dtype=np.float32).tobytes()`, store in the new `Embedding` column. Wrapped in try/except — **fails soft on write** (if embedding generation errors, the row is still written without an embedding; exact-match caching for it keeps working, it's just invisible to semantic search).
-- **New `cache_get_semantic(agent_name, query, similarity_floor=0.85) -> tuple[str, str] | None`:**
+- **New `cache_get_semantic(agent_name, query) -> tuple[str, str] | None`:**
   1. `SELECT Query, Response, Embedding FROM dw.QueryCache WHERE AgentName = ? AND ExpiresAt > SYSDATETIME() AND Embedding IS NOT NULL`
   2. Embed the incoming query, compute cosine similarity (dot product, since vectors are pre-normalized) against each candidate in Python — table size is TTL-bounded (15–60 min) so this is always a small, fast scan; no vector index needed at this scale.
-  3. Return the best-scoring `(response, matched_query)` pair if its score clears `similarity_floor`, else `None`.
+  3. Return the best-scoring `(response, matched_query)` pair if its score clears `SIMILARITY_FLOOR`, else `None`.
+
+  **`SIMILARITY_FLOOR` was measured against `all-MiniLM-L6-v2`, not guessed** (same "measure, don't assume" approach as Phase 7's prompt-caching threshold). The design originally specified `0.85`. Live testing against the project's own motivating example found:
+
+  | Pair (against "...total payments made in ohio") | Cosine similarity |
+  |---|---|
+  | "...in OH" (the true paraphrase that motivated this phase) | **0.825** |
+  | "What are the total payments in Ohio?" (rephrase) | 0.862 |
+  | "...total payments **NOT** made in ohio" (negation — should reject) | **0.9495** |
+  | "...total payments made in Texas" (different state) | 0.725 |
+  | "...total claims denied in ohio" (different metric) | 0.605 |
+
+  A `0.85` floor would have **missed the exact paraphrase this phase exists to catch** (0.825 < 0.85). Worse, the negation case scores *higher* than the true paraphrase — proof that embedding similarity alone cannot be trusted as a safety boundary, at any threshold. `SIMILARITY_FLOOR` was lowered to **`0.80`** to catch real paraphrases; this is safe specifically because the floor only ever produces a *candidate* for `verify_equivalence()` to judge — it was live-verified that the negation case (0.9495, well above 0.80) reaches the LLM gate and is correctly rejected there (see Testing section below). Lowering the floor changes recall and Haiku-call volume, not safety.
 - **New `verify_equivalence(client, new_query, candidate_query) -> bool`:**
   - Single Claude **Haiku** call (`claude-haiku-4-5-20251001` — cheap/fast, this is a pure classification task), strict fail-closed prompt:
     > Answer YES only if a correct, complete answer to Question B would also be a fully correct, complete answer to Question A — same filters, scope, metric, time period, and location. If there is ANY difference in meaning or you are not completely certain, answer NO. Respond with exactly one word: YES or NO.
@@ -129,12 +141,12 @@ The appended note on a semantic hit is a deliberate transparency choice: it cost
 - No candidate (`cache_get_semantic` → `None`) falls through to a normal fresh dispatch.
 - Pure cosine-similarity math (`cache_get_semantic`'s scoring) is also tested directly with hand-crafted vectors — deterministic, no model needed.
 
-**Live verification** (same pattern used for Layer 2 in Phase 7):
+**Live verification — performed 2026-06-23, all four passed:**
 
-1. Deploy `sql/13_semantic_cache.sql`.
-2. Ask "Show me total payments made in ohio", then "...in OH" — confirm the second call returns the same answer with **zero new FinancialAgent tokens** in `dw.AgentUsageLog` (only the small Haiku verification cost), proving the semantic hit worked.
-3. Ask a deliberately *similar-but-different* follow-up (e.g., "total payments NOT in Ohio", or a different state) — confirm `verify_equivalence` correctly returns `False` and a fresh dispatch happens. This is the direct test of the false-positive-prevention mechanism.
-4. Confirm `HEALTHCAREADK_SEMANTIC_CACHE_ENABLED=0` fully disables Layer 3 while Layer 2 exact-match keeps working.
+1. Deployed `sql/13_semantic_cache.sql` against the real DB — confirmed `dw.QueryCache.Embedding` column exists.
+2. Asked "Show me total payments made in ohio", then "...in OH" under a fresh session — the second call returned the cached answer with the transparency note appended, and `dw.AgentUsageLog` showed **zero FinancialAgent rows** for that session, proving the domain agent was never dispatched. (First attempt at this used a `0.85` floor and missed the hit entirely — see the floor recalibration above. Also discovered: re-running the *exact same* failed query text on a retry hits Layer 2's exact-match cache, not Layer 3 — each live-test iteration needs a genuinely distinct paraphrase to isolate the semantic path.)
+3. Tested the negation near-miss directly against `cache_get_semantic()` + `verify_equivalence()`: the candidate retrieval correctly returned the "ohio" entry (its 0.9495 similarity clears the floor), and `verify_equivalence()` correctly returned `False` for it — confirming the LLM gate, not the floor, is what actually prevents the false positive here.
+4. Confirmed `HEALTHCAREADK_SEMANTIC_CACHE_ENABLED=0` makes `cache_get_semantic()` return `None` immediately with no DB connection attempted.
 
 ---
 

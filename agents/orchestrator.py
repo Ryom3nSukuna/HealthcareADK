@@ -16,7 +16,7 @@ import yaml
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
-from agents.cache import cache_get, cache_invalidate, cache_set
+from agents.cache import cache_get, cache_get_semantic, cache_invalidate, cache_set, verify_equivalence
 
 load_dotenv()
 
@@ -82,6 +82,18 @@ def _dispatch(agent_name: str, user_request: str, session_id: str, client: Anthr
     cached = cache_get(agent_name, user_request)
     if cached is not None:
         return cached
+
+    # Layer 3 — only reached on an exact-match miss. cache_get_semantic() only ever
+    # returns a *candidate*; verify_equivalence() is the mandatory fail-closed gate
+    # that actually authorizes reuse. No similarity score alone serves a cached answer.
+    semantic_hit = cache_get_semantic(agent_name, user_request)
+    if semantic_hit is not None:
+        candidate_response, matched_query = semantic_hit
+        if verify_equivalence(client, user_request, matched_query):
+            return (
+                f"{candidate_response}\n\n"
+                f'*(Answered using a cached response to a similar question: "{matched_query}")*'
+            )
 
     budget_msg = _check_budget(agent_name, session_id)
     if budget_msg:

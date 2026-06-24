@@ -228,11 +228,11 @@ Two test suites — see [docs/phase6_design.md § Testing](phase6_design.md) for
 
 ---
 
-## Phase 8 — Semantic Query Cache (Layer 3)
+## Phase 8 — Semantic Query Cache (Layer 3) ✅ COMPLETE (2026-06-23)
 
 **Goal:** Catch paraphrased repeat queries (synonyms, abbreviations, rewording) that Layer 2's exact-text-match cache misses — e.g. "total payments in ohio" vs "...in OH" — without ever risking a wrong answer served from a merely-similar cached response.
 
-**Design:** See [docs/phase8_design.md](phase8_design.md). Full plan recorded at decision time in this session; key points below.
+**Design:** See [docs/phase8_design.md](phase8_design.md).
 
 **Decisions confirmed before implementation:**
 
@@ -240,16 +240,18 @@ Two test suites — see [docs/phase6_design.md § Testing](phase6_design.md) for
 - Scope: all 6 domain agents (no carve-out for ClinicalAgent).
 - **Zero-false-positive design principle:** embedding similarity only ever produces a *candidate*; a candidate is never served without a dedicated, strict Claude Haiku verification call (`verify_equivalence()`) that defaults to "NO" on any doubt about scope, filters, time period, or interpretation. No similarity-only shortcut exists, even at very high scores.
 
+**Live-testing finding (not the original speculative value):** the design originally specified a `0.85` similarity floor; live calibration against the real model found the motivating "ohio" vs "OH" paraphrase only scores **0.825** — a `0.85` floor would have missed the exact case this phase exists to catch. Floor lowered to **`0.80`**. Also found that a negation ("...NOT made in ohio") scores **0.9495** — *higher* than the true paraphrase — and was live-verified to reach `verify_equivalence()` and be correctly rejected there. Full numbers in `docs/phase8_design.md`.
+
 ### Tasks
 
-- [ ] `requirements.txt` — add `sentence-transformers`
-- [ ] `agents/embeddings.py` — lazy-loaded local model singleton, `embed(text) -> np.ndarray` (unit-normalized)
-- [ ] `sql/13_semantic_cache.sql` — idempotent `ALTER TABLE dw.QueryCache ADD Embedding VARBINARY(MAX) NULL`
-- [ ] `agents/cache.py` — `cache_set()` also stores the query's embedding (fails soft on write); new `cache_get_semantic(agent_name, query, similarity_floor=0.85)` (brute-force cosine scan over non-expired, non-null-embedding rows for that agent — table is TTL-bounded, no vector index needed); new `verify_equivalence(client, new_query, candidate_query)` (Haiku call, fail-closed parsing); `HEALTHCAREADK_SEMANTIC_CACHE_ENABLED` env-var kill switch (default `"1"`)
-- [ ] `agents/orchestrator.py:_dispatch()` — insert the semantic-candidate + verify step between the existing exact-match check and the budget check; on a verified hit, append a transparency note ("Answered using a cached response to a similar question: ...") to the returned text
-- [ ] `tests/test_phase6.py` — extend the `_no_real_cache` autouse fixture to also patch `cache_get_semantic`/`verify_equivalence`; new `TestSemanticCache` class (verified-hit, rejected-candidate, no-candidate, and pure cosine-similarity-math cases)
-- [ ] Deploy `sql/13_semantic_cache.sql`; live-test: ohio/OH semantic hit (zero new domain-agent tokens), a deliberate near-miss correctly rejected (e.g. "NOT in Ohio" or a different state), and the kill switch disabling Layer 3 while Layer 2 keeps working
-- [ ] Update `docs/phase8_design.md`, `CLAUDE.md` (phase table + short blurb), `README.md` (new dependency, one-time model download note)
+- [x] `requirements.txt` — add `sentence-transformers`
+- [x] `agents/embeddings.py` — lazy-loaded local model singleton, `embed(text) -> np.ndarray` (unit-normalized)
+- [x] `sql/13_semantic_cache.sql` — idempotent `ALTER TABLE dw.QueryCache ADD Embedding VARBINARY(MAX) NULL`
+- [x] `agents/cache.py` — `cache_set()` also stores the query's embedding (fails soft on write); new `cache_get_semantic(agent_name, query)` (brute-force cosine scan over non-expired, non-null-embedding rows for that agent, `SIMILARITY_FLOOR = 0.80`); new `verify_equivalence(client, new_query, candidate_query)` (Haiku call, fail-closed parsing); `HEALTHCAREADK_SEMANTIC_CACHE_ENABLED` env-var kill switch (default `"1"`)
+- [x] `agents/orchestrator.py:_dispatch()` — semantic-candidate + verify step inserted between the exact-match check and the budget check; on a verified hit, appends a transparency note to the returned text
+- [x] `tests/test_phase6.py` — extended the `_no_real_cache` autouse fixture to also patch `cache_get_semantic`/`verify_equivalence`; new `TestSemanticCache` + `TestSemanticCacheScoring` classes (18/18 passing)
+- [x] Deployed `sql/13_semantic_cache.sql`; live-tested: ohio/OH semantic hit (zero new FinancialAgent rows in `dw.AgentUsageLog`), negation near-miss correctly rejected by `verify_equivalence()` despite clearing the floor, kill switch confirmed to skip the DB entirely
+- [x] Updated `docs/phase8_design.md`, `CLAUDE.md` (phase table + short blurb), `README.md` (new dependency, one-time model download note)
 
 **Explicitly deferred:** per-agent opt-out config (not needed — scope is all 6 agents by decision), a real vector index (unnecessary at this scale), logging verification-call token cost as its own `dw.AgentUsageLog` line item.
 

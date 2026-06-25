@@ -254,3 +254,19 @@ Two test suites — see [docs/phase6_design.md § Testing](phase6_design.md) for
 - [x] Updated `docs/phase8_design.md`, `CLAUDE.md` (phase table + short blurb), `README.md` (new dependency, one-time model download note)
 
 **Explicitly deferred:** per-agent opt-out config (not needed — scope is all 6 agents by decision), a real vector index (unnecessary at this scale), logging verification-call token cost as its own `dw.AgentUsageLog` line item.
+
+---
+
+## Phase 9 (scrapped) — see commit 9ca82d5
+
+---
+
+## Post-Phase Documentation
+
+### HIPAA Control Map ✅ COMPLETE (2026-06-25)
+
+- [x] `docs/hipaa_control_map.md` — maps every built feature to its HIPAA Security Rule safeguard (§ 164.308 / § 164.310 / § 164.312). Covers: DB access isolation, audit logging, integrity guards, authentication, transmission security, token budget as risk control, workforce termination via env-var credential rotation.
+
+### New Client Onboarding Guide ✅ COMPLETE (2026-06-25)
+
+- [x] `docs/new_client_onboarding.md` — step-by-step guide for replacing the healthcare client pack with a new domain. Covers: engine/client boundary explanation, what to replace vs. keep, agent YAML + Python scaffolding, orchestrator module map update, SQL login deployment, env var setup, MCP server path self-healing, test checklist.

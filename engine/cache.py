@@ -23,12 +23,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SIMILARITY_FLOOR = 0.80
-# Empirically measured against all-MiniLM-L6-v2 (live test, 2026-06-23):
-#   "...in ohio" vs "...in OH" (true paraphrase)        -> 0.825  (would miss a 0.85 floor)
-#   "...in ohio" vs "NOT ...in ohio" (negation)          -> 0.9495 (HIGHER than the true paraphrase!)
-#   "...in ohio" vs "...in Texas" (different state)      -> 0.7254
-#   "...in ohio" vs "...claims denied in ohio" (diff metric) -> 0.6049
+SIMILARITY_FLOOR = 0.75
+# Empirically measured against all-MiniLM-L6-v2:
+#   "...in ohio" vs "...in OH" (true paraphrase)                      -> 0.825
+#   "Show me total patients from New York" vs "How many from state of NY" -> 0.798  (missed at 0.80, caught at 0.75)
+#   "...in ohio" vs "NOT ...in ohio" (negation)                        -> 0.9495 (HIGHER than true paraphrase!)
+#   "...in ohio" vs "...in Texas" (different state)                    -> 0.7254
+#   "...in ohio" vs "...claims denied in ohio" (diff metric)           -> 0.6049
 # The negation result is exactly why the floor only ever gates a *candidate* — it is
 # not a safety boundary by itself. verify_equivalence() is the only thing that can
 # authorize reuse; a floor this loose is fine precisely because nothing downstream

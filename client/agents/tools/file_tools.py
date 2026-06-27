@@ -165,4 +165,8 @@ TOOL_REGISTRY: dict[str, dict] = {
 
 
 def build_tools(allowed_mcp_names: list[str]) -> list[dict]:
-    return [TOOL_REGISTRY[name] for name in allowed_mcp_names if name in TOOL_REGISTRY]
+    return [
+        {"mcp_name": name, **TOOL_REGISTRY[name]}
+        for name in allowed_mcp_names
+        if name in TOOL_REGISTRY
+    ]

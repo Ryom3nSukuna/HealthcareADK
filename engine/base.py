@@ -6,6 +6,8 @@ import json
 
 from anthropic import Anthropic
 
+from engine.hook_runner import HookDenied, run_post_tool_use, run_pre_tool_use
+
 MAX_ITERATIONS = 20
 
 
@@ -38,6 +40,7 @@ def run_agent(
     """
     tool_defs = [t["definition"] for t in tools]
     tool_map = {t["definition"]["name"]: t["fn"] for t in tools}
+    mcp_names = {t["definition"]["name"]: t.get("mcp_name", t["definition"]["name"]) for t in tools}
 
     messages = [{"role": "user", "content": user_request}]
     total_input = 0
@@ -89,8 +92,13 @@ def run_agent(
                 tool_call_count += 1
                 fn = tool_map.get(block.name)
                 if fn:
+                    mcp_name = mcp_names.get(block.name, block.name)
                     try:
+                        run_pre_tool_use(mcp_name, block.input)
                         result = fn(**block.input)
+                        run_post_tool_use(mcp_name, block.input, result)
+                    except HookDenied as denied:
+                        result = json.dumps({"error": f"Blocked by guard: {denied.reason}"})
                     except Exception as exc:
                         result = json.dumps({"error": str(exc)})
                 else:

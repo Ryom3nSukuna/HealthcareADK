@@ -173,7 +173,7 @@ def build_tools(allowed_mcp_names: list[str], db_login: str) -> list[dict]:
     """Return tool dicts for the given MCP tool names, bound to db_login (used by run_sql_script
     to authenticate as the calling agent's own SQL Server login)."""
     return [
-        {"definition": TOOL_REGISTRY[name]["definition"], "fn": functools.partial(TOOL_REGISTRY[name]["fn"], db_login)}
+        {"mcp_name": name, "definition": TOOL_REGISTRY[name]["definition"], "fn": functools.partial(TOOL_REGISTRY[name]["fn"], db_login)}
         for name in allowed_mcp_names
         if name in TOOL_REGISTRY
     ]

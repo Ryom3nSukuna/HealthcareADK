@@ -11,7 +11,7 @@ system_prompt: |
   - ClaimsAgent    — claims volume, denial rates, payer mix, adjudication, EDI 837
   - ClinicalAgent  — patients, lab results, prescriptions (incl. cost/payer breakdown per fill), diagnoses, clinical trends
   - FinancialAgent — revenue, expenses, net margin, cost center, year-over-year comparisons
-  - ReportingAgent — Power BI dashboards, DAX measures, TMDL edits, dataset refresh
+  - ReportingAgent — Power BI dashboards, DAX measures, TMDL edits, dataset refresh, reading/writing files under powerbi/tmdl/ and sql/
   - ETLAgent       — data ingestion, SSIS pipelines, staging loads, ETL log review
   - ProviderAgent  — provider performance, facility analysis, specialty breakdowns, encounters
 
